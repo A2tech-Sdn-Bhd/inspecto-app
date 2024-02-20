@@ -92,28 +92,15 @@ const ListModuleCard = ({ setCam, setShowPtzCtrl, showAuto, setShowAuto }) => {
             ) : (
               <></>
             )}
-            {/* {ptzModuleAccess ? (
+            {LaserModuleAccess ? (
               <button
                 className="btn btn-block btn-neutral"
                 onClick={() => {
-                  navigate("/ptz");
+                  navigate("/laser");
                 }}
               >
-                PTZ Controller
+                Laser
               </button>
-            ) : (
-              <></>
-            )} */}
-
-            {LaserModuleAccess ? (
-              <button
-              className="btn btn-block btn-neutral"
-              onClick={() => {
-                navigate("/laser");
-              }}
-            >
-              Laser
-            </button>              
             ) : (
               <></>
             )}
@@ -125,6 +112,18 @@ const ListModuleCard = ({ setCam, setShowPtzCtrl, showAuto, setShowAuto }) => {
                 }}
               >
                 Cleaning
+              </button>
+            ) : (
+              <></>
+            )}
+            {ptzModuleAccess ? (
+              <button
+                className="btn btn-block btn-neutral btn-disabled"
+                onClick={() => {
+                  navigate("/ptz");
+                }}
+              >
+                PTZ Controller
               </button>
             ) : (
               <></>

@@ -1,6 +1,3 @@
-// reference for fix diameter
-// ratio for range from diamter
-// let say reference 30 and ratio 5%, the min is 25 and max is 35
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCookies } from "react-cookie";
@@ -12,16 +9,9 @@ const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import NavBar from "../Components/NavBar";
 import { AiFillSave } from "react-icons/ai";
 import { FaTrashCan } from "react-icons/fa6";
-import {
-  BsJoystick,
-  BsFillKeyboardFill,
-  BsRocketTakeoff,
-} from "react-icons/bs";
-import logo from "../assets/a2tech.png";
 import Draggable from "react-draggable";
 import { saveAs } from "file-saver";
 import { Button, Modal } from "react-daisyui";
-import { GoAlert } from "react-icons/go";
 import "../App.css";
 import {
   LineChart,
@@ -30,15 +20,14 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
-import { BsFillFileEarmarkBarGraphFill } from "react-icons/bs";
 import GeneratePDFButton from "../Components/GeneratePDFButton";
 
 import ReportForm from "../Components/ReportForm";
 import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanelLaser from "../Components/OdometerPanellaser";
 import LaserModule from "../Components/LaserModule";
+import { GoAlert } from "react-icons/go";
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -65,7 +54,17 @@ let mediaRecorder = null;
 let videoStream = null;
 let chunks = [];
 
-function LaserPage({ ros, connected, setConnected }) {
+function LaserPage({
+  ros,
+  connected,
+  setConnected,
+  odometerValue,
+  moveDistancePub,
+  stopAutoPub,
+  cmdVelPub,
+  airSpeedValue,
+  odometerResetPub,
+}) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
   const [place, setplace] = useState("");
@@ -84,33 +83,18 @@ function LaserPage({ ros, connected, setConnected }) {
   const [showAuto, setShowAuto] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
   const [startPlot, setStartPlot] = useState(false);
-  const [temperature, setTemperature] = useState(0.0);
   const [edgeFront, setEdgeFront] = useState(true);
   const [edgeRear, setEdgeRear] = useState(true);
-
-  const cmdVelPub = useRef(null);
-  const brushArmPub = useRef(null);
-  const brushSpin = useRef(null);
-  const edgeFrontSub = useRef(null);
-  const edgeRearSub = useRef(null);
-  const odometerResetPub = useRef(null);
-  const startAutoPub = useRef(null);
-  const stopAutoPub = useRef(null);
-  const moveDistancePub = useRef(null);
-  const resetOdomPub = useRef(null);
-  const diameterSub = useRef(null);
-
-  const brushState = useRef(false);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
 
   const canvasRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
+  const diameterSub = useRef(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [laserStatus, setLaserStatus] = useState(false);
-  const [odometerValue, setOdometerValue] = useState(0.0);
   const [LaserModuleAccess, setLaserModuleAccess] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [inputDiameter, setInputDiameter] = useState("");
@@ -158,23 +142,23 @@ function LaserPage({ ros, connected, setConnected }) {
       setStartPlot(true);
     }
   };
-  useEffect(() => {
-    console.log("edgeFront", edgeFront);
-    if (edgeFront) {
-      setModalVisible(true);
-    } else {
-      setModalVisible(false);
-    }
-  }, [edgeFront]);
+  // useEffect(() => {
+  //   console.log("edgeFront", edgeFront);
+  //   if (edgeFront) {
+  //     setModalVisible(true);
+  //   } else {
+  //     setModalVisible(false);
+  //   }
+  // }, [edgeFront]);
 
-  useEffect(() => {
-    console.log("edgeRear", edgeRear);
-    if (edgeRear) {
-      setModalVisible(true);
-    } else {
-      setModalVisible(false);
-    }
-  }, [edgeRear]);
+  // useEffect(() => {
+  //   console.log("edgeRear", edgeRear);
+  //   if (edgeRear) {
+  //     setModalVisible(true);
+  //   } else {
+  //     setModalVisible(false);
+  //   }
+  // }, [edgeRear]);
   useEffect(() => {
     window.addEventListener("gamepadconnected", (event) => {
       // console.log("A gamepad connected:");
@@ -200,16 +184,6 @@ function LaserPage({ ros, connected, setConnected }) {
         setCam(2);
       } else if (evt.code === "Digit3") {
         setCam(3);
-      } else if (evt.code === "KeyF") {
-        // console.log("brush up");
-        handleBrushArm("up");
-      } else if (evt.code === "KeyV") {
-        // console.log("brush down");
-        handleBrushArm("down");
-      } else if (evt.code === "KeyQ") {
-        brushState.current = !brushState.current;
-        // console.log(brushState.current);
-        handleBrushSpin(brushState.current);
       } else if (evt.code === "ArrowUp") {
         arrowUp = true;
         // // console.log("up press");
@@ -219,14 +193,6 @@ function LaserPage({ ros, connected, setConnected }) {
         arrowLeft = true;
       } else if (evt.code === "ArrowRight") {
         arrowRight = true;
-      } else if (evt.code === "KeyR" && evt.shiftKey) {
-        // console.log("Reset");
-        const confirmed = window.confirm(
-          "Are you sure you want to reset the odometer?"
-        );
-        if (confirmed) {
-          odometerResetPub.current.publish({});
-        }
       }
     });
 
@@ -240,14 +206,6 @@ function LaserPage({ ros, connected, setConnected }) {
         arrowLeft = false;
       } else if (evt.code === "ArrowRight") {
         arrowRight = false;
-      } else if (
-        evt.code === "KeyW" ||
-        evt.code === "KeyA" ||
-        evt.code === "KeyS" ||
-        evt.code === "KeyD" ||
-        evt.code === "KeyZ" ||
-        evt.code === "KeyX"
-      ) {
       }
     });
 
@@ -375,11 +333,6 @@ function LaserPage({ ros, connected, setConnected }) {
     setShowShortcuts(false);
   }
 
-  const handleInputChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.-]/g, "");
-    setInputValue(sanitizedValue);
-  };
   const handleInputDiameterChange = (event) => {
     const input = event.target.value;
     const sanitizedValue = input.replace(/[^0-9.]/g, "");
@@ -521,15 +474,19 @@ function LaserPage({ ros, connected, setConnected }) {
       });
 
       diameterSub.current.subscribe((msg) => {
-        const currentX = msg.field_of_view.toFixed(3);
-        if (prevX === null || Math.abs(currentX - prevX) >= 0.02) {
+        const currentX = msg.field_of_view.toFixed(2);
+        console.log("abs", Math.abs(currentX - prevX));
+        if (
+          prevX === null ||
+          (Math.abs(currentX - prevX) >= 0.02 && currentX !== prevX)
+        ) {
           console.log("plotting ", realtimeData.length);
-          var realDiameter = msg.min_range.toFixed(3);
+          var realDiameter = msg.min_range.toFixed(2);
           //+- 20% tolerance
           const inputD = parseFloat(inputDiameter);
           const tol = parseFloat(inputTol / 100);
-          const highTol = (inputD + inputD * tol).toFixed(3);
-          const lowTol = (inputD - inputD * tol).toFixed(3);
+          const highTol = (inputD + inputD * tol).toFixed(2);
+          const lowTol = (inputD - inputD * tol).toFixed(2);
           setLowYplot(lowTol - lowYplot * 0.2);
           sethighYplot(highTol + highYplot * 0.2);
           const newDataPoint = {
@@ -539,11 +496,12 @@ function LaserPage({ ros, connected, setConnected }) {
             highRange: lowTol,
           };
           setRealtimeData((prevData) => [...prevData, newDataPoint]);
+          setChartWidth(Math.max(1595, realtimeData.length * 20));
+
           if (chartContainerRef.current) {
             chartContainerRef.current.scrollLeft =
               chartContainerRef.current.scrollWidth;
           }
-          console.log("new point", newDataPoint);
           prevX = currentX;
           counter = 0;
         } else {
@@ -557,9 +515,6 @@ function LaserPage({ ros, connected, setConnected }) {
           setStartPlot(false);
           diameterSub.current.unsubscribe();
           diameterSub.current = null;
-          // setInputValue('');
-          // setInputDiameter('');
-          // setInputTol('');
         }
       });
     }
@@ -571,28 +526,7 @@ function LaserPage({ ros, connected, setConnected }) {
       counter = 0;
       prevX = null;
     };
-  }, [startPlot, autoStart]);
-  useEffect(() => {
-    //when it is not plotting
-    if (autoStart) {
-      // // console.log("realtime data length: ", realtimeData.length)
-      // if (realtimeData.length === 0) {
-      // 	moveDistancePub.current.publish({ data: parseFloat(inputValue) });
-      // 	setStartPlot(true);
-      // };
-      const autoInterval = setInterval(() => {
-        // console.log("reset auto");
-        setAutoStart(false);
-        setStartPlot(false);
-        // setInputValue('');
-        // setInputDiameter('');
-        // setInputTol('');
-      }, 5000);
-      return () => {
-        clearInterval(autoInterval);
-      };
-    }
-  }, [autoStart, realtimeData]);
+  }, [startPlot]);
 
   useEffect(() => {
     videoStream = canvasRef.current.captureStream(30);
@@ -668,7 +602,7 @@ function LaserPage({ ros, connected, setConnected }) {
       context.clearRect(0, 0, cw, ch);
       if (cam != 4 && imageLoaded) {
         if (!showAuto) {
-          context.drawImage(image, 0, 0, 1280, 720);
+          context.drawImage(image, 0, 0, 1280, 580);
           context.font = "30px Georgia";
           const textWidth = context.measureText(text).width;
           context.globalAlpha = 1.0;
@@ -961,79 +895,6 @@ function LaserPage({ ros, connected, setConnected }) {
   }, [showAuto]);
 
   useEffect(() => {
-    if (!connected) {
-      return;
-    }
-
-    setConnected(true);
-    // publisher for robot movement
-    cmdVelPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/cmd_vel",
-      messageType: "geometry_msgs/Twist",
-    });
-    // publisher for brush arm up/down
-    brushArmPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/brush/up_down",
-      messageType: "std_msgs/String",
-    });
-    // publisher for on/off brush
-    brushSpin.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/brush/spin",
-      messageType: "std_msgs/Bool",
-    });
-
- 
-    // subscribe edge front
-    edgeFrontSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/front",
-      messageType: "std_msgs/Bool",
-    });
-    edgeFrontSub.current.subscribe((msg) => {
-      setEdgeFront(msg.data);
-    });
-
-    // subscribe edge rear
-    edgeRearSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/rear",
-      messageType: "std_msgs/Bool",
-    });
-    edgeRearSub.current.subscribe((msg) => {
-      setEdgeRear(msg.data);
-    });
-
-    odometerResetPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odometer_reset",
-      messageType: "std_msgs/Empty",
-    });
-    startAutoPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/start_auto",
-      messageType: "std_msgs/Empty",
-    });
-    stopAutoPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/stop_auto",
-      messageType: "std_msgs/Empty",
-    });
-    resetOdomPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/reset_odom",
-      messageType: "std_msgs/Empty",
-    });
-    moveDistancePub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/move_distance",
-      messageType: "std_msgs/Float32",
-    });
-  }, [connected]);
-
-  useEffect(() => {
     // // console.log(canvas);
     if (cam == 1) {
       // stopchrome();
@@ -1126,10 +987,6 @@ function LaserPage({ ros, connected, setConnected }) {
     }, 100);
     setIntervalId(newIntervalId);
   };
-
-  const handleBrushArm = (payload) => {
-    brushArmPub.current.publish({ data: payload });
-  };
   const shutdownInspecto = () => {
     let date = new Date();
     date = date.toLocaleString();
@@ -1167,10 +1024,6 @@ function LaserPage({ ros, connected, setConnected }) {
         });
       }
     });
-  };
-  const handleBrushSpin = (payload) => {
-    brushSpin.current.publish({ data: payload });
-    // // console.log(payload);
   };
 
   const downloadImage = () => {
@@ -1257,15 +1110,6 @@ function LaserPage({ ros, connected, setConnected }) {
     link.click();
   };
 
-  const handleManualPlot = () => {
-    setCam(3);
-    // resetOdomPub.current.publish({});
-    // if (realtimeData.length) {
-    // 	setRealtimeData(prevData => []);
-    // }
-    setStartPlot(!startPlot);
-  };
-
   return (
     <div
       className="w-screen h-screen bg-slate-800 overflow-hidden"
@@ -1275,33 +1119,36 @@ function LaserPage({ ros, connected, setConnected }) {
     >
       <div className="grid grid-rows-12">
         <div className="row-span-1">
-        <NavBar
-        ros={ros}
-          connected={connected}
-          Logout={Logout}
-          setShowJoystick={setShowJoystick}
-          setShowShortcuts={setShowShortcuts}
-          temperature={temperature}
-          showBtnStartTrip={showBtnStartTrip}
-          showBtnEndTrip={showBtnEndTrip}
-          restartService={restartService}
-          shutdownInspecto={shutdownInspecto}
-          showForm={showForm}
-          setShowForm={setShowForm}
-          tripNamePrevious={tripNamePrevious}
-          inspectoNamePrevious={inspectoNamePrevious}
-          tripTypePrevious={tripTypePrevious}
-          placePrevious={placePrevious}
-          setShowBtnEndTrip={setShowBtnEndTrip}
-          setShowBtnStartTrip={setShowBtnStartTrip}
-          handleGeneratePDF={handleGeneratePDF}
-          handleUseButton={handleUseButton}
-          setShowFormLogin={setShowFormLogin}
-          showFormLogin={showFormLogin}
-          endTrip={endTrip}
-          startTrip={startTrip}
-          showJoystick={showJoystick}
-        />
+          <NavBar
+            ros={ros}
+            connected={connected}
+            Logout={Logout}
+            setShowJoystick={setShowJoystick}
+            setShowShortcuts={setShowShortcuts}
+            showBtnStartTrip={showBtnStartTrip}
+            showBtnEndTrip={showBtnEndTrip}
+            restartService={restartService}
+            shutdownInspecto={shutdownInspecto}
+            showForm={showForm}
+            setShowForm={setShowForm}
+            tripNamePrevious={tripNamePrevious}
+            inspectoNamePrevious={inspectoNamePrevious}
+            tripTypePrevious={tripTypePrevious}
+            placePrevious={placePrevious}
+            setShowBtnEndTrip={setShowBtnEndTrip}
+            setShowBtnStartTrip={setShowBtnStartTrip}
+            handleGeneratePDF={handleGeneratePDF}
+            handleUseButton={handleUseButton}
+            setShowFormLogin={setShowFormLogin}
+            showFormLogin={showFormLogin}
+            endTrip={endTrip}
+            startTrip={startTrip}
+            showJoystick={showJoystick}
+            setCam={setCam}
+            moveDistancePub={moveDistancePub}
+            stopAutoPub={stopAutoPub}
+            odometerValue={odometerValue}
+          />
         </div>
         <div className="row-span-3">
           <div className="grid grid-cols-12 gap-4 mb-4">
@@ -1385,9 +1232,10 @@ function LaserPage({ ros, connected, setConnected }) {
               </div>
               <div className="mt-2 me-4">
                 <OdometerPanelLaser
-                  ros={ros}
-                  connected={connected}
                   setConnected={setConnected}
+                  odometerValue={odometerValue}
+                  airSpeedValue={airSpeedValue}
+                  odometerResetPub={odometerResetPub}
                 />
               </div>
             </div>
@@ -1396,25 +1244,24 @@ function LaserPage({ ros, connected, setConnected }) {
         <div className="row-span-4">
           <div className="flex flex-col w-full ">
             <div className="grid grid-cols-12 gap-2 mx-2">
-              <div className="grid col-span-12">
+              <div className="grid col-span-12 invisible md:visible w-full">
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <div className="flex flex-row">
-                      <div
-                        className="ms-4"
-                        ref={chartContainerRef}
-                        style={{
-                          overflowX: "auto",
-                        }}
-                      >
+                      <div className="ms-4" ref={chartContainerRef}>
                         <h1 className="font-bold">Graph Visualization</h1>
-                        <>
+                        <div
+                          style={{
+                            overflowX: "scroll",
+                            width:"1595px",
+                          }}
+                        >
                           <LineChart
                             width={chartWidth}
                             height={170}
                             data={realtimeData}
                           >
-                            <CartesianGrid stroke="#ccc" />
+                            <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="x" interval={1} />
                             <YAxis domain={[0.1, 1]} />
                             <Tooltip />
@@ -1434,7 +1281,7 @@ function LaserPage({ ros, connected, setConnected }) {
                               stroke="#ff5733"
                             />
                           </LineChart>
-                        </>
+                        </div>
                       </div>
                       <div className="flex flex-cols items-start">
                         <div className="ms-2 ">
@@ -1499,26 +1346,6 @@ function LaserPage({ ros, connected, setConnected }) {
                             onClick={handleSaveCsvClick}
                           >
                             <AiFillSave color="white" size={25}></AiFillSave>
-                          </button>
-                        </div>
-                        <div className="flex flex-row align-middle ">
-                          <button
-                            disabled={!laserStatus}
-                            className="btn tooltip btn-neutral"
-                            style={{
-                              width: "30px",
-                              height: "30px",
-                              padding: "1px",
-                              marginTop: "5px",
-                              marginLeft: "8px",
-                            }}
-                            data-tip="Plot in Manual Mode"
-                            onClick={handleManualPlot}
-                          >
-                            <BsFillFileEarmarkBarGraphFill
-                              color="white"
-                              size={25}
-                            ></BsFillFileEarmarkBarGraphFill>
                           </button>
                         </div>
                         <div className="flex flex-row align-middle ">
@@ -1597,25 +1424,25 @@ function LaserPage({ ros, connected, setConnected }) {
           </div>
         </div>
       </dialog>
-      {/* <Modal className="flex justify-center w-60" open={modalVisible}>
+      <Modal className="flex justify-center w-60" open={modalVisible}>
         <Modal.Body>
           <div className="flex flex-col gap-1">
             <div className="flex justify-center gap-2">
-              {(edgeFront === false || edgeRear === false) && (
+              {(edgeFront === true || edgeRear === true) && (
                 <GoAlert size={40} color="red"></GoAlert>
               )}
             </div>
             <div className="flex flex-col w-full">
-              {!edgeFront && (
+              {edgeFront && (
                 <h1 className="w-full items-center">Front Edge Detected</h1>
               )}
-            {!edgeRear && (
+              {edgeRear && (
                 <h1 className="w-full items-center">Rear Edge Detected</h1>
               )}
             </div>
           </div>
         </Modal.Body>
-      </Modal> */}
+      </Modal>
       <ReportForm
         showForm={showForm}
         setShowForm={setShowForm}

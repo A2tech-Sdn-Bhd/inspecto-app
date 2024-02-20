@@ -43,7 +43,19 @@ let mediaRecorder = null;
 let videoStream = null;
 let chunks = [];
 
-function CleaningPage({ros,connected,setConnected}) {
+function CleaningPage({
+  ros,
+  connected,
+  setConnected,
+  odometerValue,
+  moveDistancePub,
+  stopAutoPub,
+  cmdVelPub,
+  airSpeedValue,
+  odometerResetPub,
+  brushArmPub,
+  brushSpin,
+}) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
   const [place, setplace] = useState("");
@@ -59,48 +71,18 @@ function CleaningPage({ros,connected,setConnected}) {
   const [showForm, setShowForm] = useState(false);
   const [showFormLogin, setShowFormLogin] = useState(false);
   const [showAuto, setShowAuto] = useState(false);
-  const [autoStart, setAutoStart] = useState(false);
-  const [startPlot, setStartPlot] = useState(false);
-  const [temperature, setTemperature] = useState(0.0);
   const [edgeFront, setEdgeFront] = useState(true);
   const [edgeRear, setEdgeRear] = useState(true);
-
-  const cmdVelPub = useRef(null);
-  const temperatureSub = useRef(null);
-  const edgeFrontSub = useRef(null);
-  const edgeRearSub = useRef(null);
-  const odometerSub = useRef(null);
-  const airSpeedSub = useRef(null);
-  const areaSub = useRef(null);
-  const flowRateSub = useRef(null);
-  const odometerResetPub = useRef(null);
-  const startAutoPub = useRef(null);
-  const stopAutoPub = useRef(null);
-  const moveDistancePub = useRef(null);
-  const odomSub = useRef(null);
-  const resetOdomPub = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
 
   const canvasRef = useRef(null);
-  const playerRef = useRef();
 
   const [isRecording, setIsRecording] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [odometerValue, setOdometerValue] = useState(0.0);
-  const [airSpeedValue, setAirSpeedValue] = useState(0.0);
-  const [areaValue, setAreaValue] = useState(0.0);
-  const [flowRateValue, setFlowRateValue] = useState(0.0);
-
-  const [inputValue, setInputValue] = useState("");
-  const [inputDiameter, setInputDiameter] = useState("");
-  const [inputTol, setInputTol] = useState("");
-  const inputValueRef = useRef(null);
-  const inputDiameterRef = useRef(null);
-  const inputTolRef = useRef(null);
   const [showBtnStartTrip, setShowBtnStartTrip] = useState(true);
   const [showBtnEndTrip, setShowBtnEndTrip] = useState(false);
   const navigate = useNavigate();
@@ -119,7 +101,6 @@ function CleaningPage({ros,connected,setConnected}) {
       n: "",
     });
     localStorage.setItem("generatepdfyet", true);
-    localStorage.setItem("chart_data", JSON.stringify(realtimeData));
   };
   useEffect(() => {
     if (location.pathname === "/") {
@@ -223,22 +204,6 @@ function CleaningPage({ros,connected,setConnected}) {
   function closeModal() {
     setShowShortcuts(false);
   }
-
-  const handleInputChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.-]/g, "");
-    setInputValue(sanitizedValue);
-  };
-  const handleInputDiameterChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.]/g, "");
-    setInputDiameter(sanitizedValue);
-  };
-  const handleInputTolChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.]/g, "");
-    setInputTol(sanitizedValue);
-  };
 
   const handleTripBtns = () => {
     setShowBtnStartTrip(!showBtnStartTrip);
@@ -346,10 +311,6 @@ function CleaningPage({ros,connected,setConnected}) {
       }
     });
   };
-
-  const chartContainerRef = useRef(null);
-  const [realtimeData, setRealtimeData] = useState([]);
-  const [chartWidth, setChartWidth] = useState(1350);
 
   useEffect(() => {
     window.addEventListener("load", (event) => {
@@ -723,27 +684,12 @@ function CleaningPage({ros,connected,setConnected}) {
     if (ros.current) {
       return;
     }
-    // ros.current = new ROSLIB.Ros({ url: "ws://192.168.0.141:9090" });
-    ros.current = new ROSLIB.Ros({ url: "ws://192.168.88.2:8080" });
-    // ros.current = new ROSLIB.Ros({ url: "ws://localhost:9090" });
-    ros.current.on("error", function (error) {
-      // console.log(error);
-      setConnected(false);
-    });
-    ros.current.on("connection", function () {
-      // console.log("Connection made!");
-      setConnected(true);
-    });
 
     window.addEventListener("gamepadconnected", (event) => {
-      // console.log("A gamepad connected:");
-      // console.log(event.gamepad);
       setGamepadState(true);
     });
 
     window.addEventListener("gamepaddisconnected", (event) => {
-      // console.log("A gamepad disconnected:");
-      // console.log(event.gamepad);
       setGamepadState(false);
     });
   }, []);
@@ -769,18 +715,6 @@ function CleaningPage({ros,connected,setConnected}) {
         arrowLeft = true;
       } else if (evt.code === "ArrowRight") {
         arrowRight = true;
-      } else if (evt.code === "KeyR" && evt.shiftKey) {
-        console.log("Reset");
-        const confirmed = window.confirm(
-          "Are you sure you want to reset the odometer?"
-        );
-        if (confirmed) {
-          if (odometerResetPub.current) {
-            odometerResetPub.current.publish({});
-          } else {
-            console.error("odometerResetPub.current is null");
-          }
-        }
       }
     };
 
@@ -806,124 +740,6 @@ function CleaningPage({ros,connected,setConnected}) {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, []); // Add any dependencies here
-  useEffect(() => {
-    if (!connected) {
-      return;
-    }
-
-    setConnected(true);
-    // publisher for robot movement
-    cmdVelPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/cmd_vel",
-      messageType: "geometry_msgs/Twist",
-    });
-
-    // subscribe to temperature topic
-    temperatureSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/temperature",
-      messageType: "sensor_msgs/Temperature",
-    });
-    temperatureSub.current.subscribe((msg) => {
-      setTemperature(msg.temperature);
-    });
-
-    // subscribe edge front
-    edgeFrontSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/front",
-      messageType: "std_msgs/Bool",
-    });
-    edgeFrontSub.current.subscribe((msg) => {
-      setEdgeFront(msg.data);
-    });
-
-    // subscribe edge rear
-    edgeRearSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/rear",
-      messageType: "std_msgs/Bool",
-    });
-    edgeRearSub.current.subscribe((msg) => {
-      setEdgeRear(msg.data);
-    });
-
-    // subscribe odometer
-    odometerSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odometer",
-      messageType: "std_msgs/Float64",
-    });
-
-    airSpeedSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/airspeed",
-      messageType: "std_msgs/Float32",
-    });
-
-    areaSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/area",
-      messageType: "std_msgs/Float32",
-    });
-
-    flowRateSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/flowrate",
-      messageType: "std_msgs/Float32",
-    });
-
-    odometerSub.current.subscribe((msg) => {
-      setOdometerValue(msg.data);
-    });
-    airSpeedSub.current.subscribe((msg) => {
-      setAirSpeedValue(msg.data);
-    });
-    areaSub.current.subscribe((msg) => {
-      setAreaValue(msg.data);
-    });
-    flowRateSub.current.subscribe((msg) => {
-      setFlowRateValue(msg.data);
-    });
-
-    odometerResetPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odometer_reset",
-      messageType: "std_msgs/Empty",
-    });
-    startAutoPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/start_auto",
-      messageType: "std_msgs/Empty",
-    });
-    stopAutoPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/stop_auto",
-      messageType: "std_msgs/Empty",
-    });
-    resetOdomPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/reset_odom",
-      messageType: "std_msgs/Empty",
-    });
-    moveDistancePub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/move_distance",
-      messageType: "std_msgs/Float32",
-    });
-
-    odomSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odom",
-      messageType: "nav_msgs/Odometry",
-    });
-    odomSub.current.subscribe((msg) => {
-      // // console.log(msg);
-      setAirSpeedValue(msg.pose.pose.position.x);
-    });
-  }, [connected]);
-
   useEffect(() => {
     // // console.log(canvas);
     if (cam == 1) {
@@ -953,7 +769,6 @@ function CleaningPage({ros,connected,setConnected}) {
       setModalVisible(false);
     }
   }, [edgeRear]);
-
 
   const handleMove = (evt) => {
     // // console.log(evt.y);
@@ -1104,11 +919,11 @@ function CleaningPage({ros,connected,setConnected}) {
     >
       <div className="flex flex-col w-full h-full">
         <NavBar
+          ros={ros}
           connected={connected}
           Logout={Logout}
           setShowJoystick={setShowJoystick}
           setShowShortcuts={setShowShortcuts}
-          temperature={temperature}
           showBtnStartTrip={showBtnStartTrip}
           showBtnEndTrip={showBtnEndTrip}
           restartService={restartService}
@@ -1128,7 +943,10 @@ function CleaningPage({ros,connected,setConnected}) {
           endTrip={endTrip}
           startTrip={startTrip}
           showJoystick={showJoystick}
-          ros={ros}
+          setCam={setCam}
+          moveDistancePub={moveDistancePub}
+          stopAutoPub={stopAutoPub}
+          odometerValue={odometerValue}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-10">
@@ -1184,10 +1002,7 @@ function CleaningPage({ros,connected,setConnected}) {
               </div>
             </div>
             <div className="col-span-2 flex flex-col justify-center">
-              <CleaningModule
-                connected={connected}
-                setConnected={setConnected}
-              />
+              <CleaningModule brushArmPub={brushArmPub} brushSpin={brushSpin} />
               {showJoystick && (
                 <>
                   <div className="card bg-base-100 me-4 mt-4">
@@ -1210,11 +1025,16 @@ function CleaningPage({ros,connected,setConnected}) {
             </div>
           </div>
           <div className="absolute bottom-10">
-            <OdometerPanel />
+            <OdometerPanel
+              setConnected={setConnected}
+              odometerValue={odometerValue}
+              airSpeedValue={airSpeedValue}
+              odometerResetPub={odometerResetPub}
+            />
           </div>
         </>
       </div>
-      {/* <Modal className="flex justify-center w-60" open={modalVisible}>
+      <Modal className="flex justify-center w-60" open={modalVisible}>
         <Modal.Body>
           <div className="flex flex-col gap-1">
             <div className="flex justify-center gap-2">
@@ -1232,7 +1052,7 @@ function CleaningPage({ros,connected,setConnected}) {
             </div>
           </div>
         </Modal.Body>
-      </Modal> */}
+      </Modal>
       <ReportForm
         showForm={showForm}
         setShowForm={setShowForm}
@@ -1247,6 +1067,92 @@ function CleaningPage({ros,connected,setConnected}) {
         setShowFormLogin={setShowFormLogin}
         showFormLogin={showFormLogin}
       />
+            <Modal open={showShortcuts}>
+        <form method="dialog">
+          <Button
+            size="sm"
+            color="ghost"
+            shape="circle"
+            className="absolute right-2 top-2"
+            onClick={closeModal}
+          >
+            x
+          </Button>
+        </form>
+        <Modal.Body>
+          <div className="flex justify-center item-center">
+            <div className="post__content">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "center" }}>KEY</th>
+                    <th style={{ textAlign: "center" }}>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <kbd>▲</kbd>
+                      </div>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <kbd>◄</kbd>
+                        <kbd>▼</kbd>
+                        <kbd>►</kbd>
+                      </div>
+                    </td>
+                    <td>ROBOT MOVEMENT</td>
+                  </tr>
+                  <tr>
+                    <td
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <kbd>W</kbd>
+                      </div>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <kbd>A</kbd>
+                        <kbd>S</kbd>
+                        <kbd>D</kbd>
+                      </div>
+                    </td>
+                    <td>PAN TILT CAMERA</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <kbd>Q</kbd>
+                    </td>
+                    <td>BRUSH: ON/OFF</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <kbd>F</kbd>
+                      <kbd>V</kbd>
+                    </td>
+                    <td>BRUSH: UP/DOWN</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <kbd>Shift + R</kbd>
+                    </td>
+                    <td>RESET ODOMETER</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }

@@ -1,56 +1,29 @@
 import React from "react";
-import { useState } from "react";
-import { useRef } from "react";
 import { useEffect } from "react";
 import Odometer from "react-odometerjs";
-import * as ROSLIB from "roslib";
-const OdometerPanelLaser = ({ros,connected,setConnected}) => {
-  const odometerSub = useRef(null);
-  const [odometerValue, setOdometerValue] = useState(0.0);
-  const [airSpeedValue, setAirSpeedValue] = useState(0.0);
-  const [areaValue, setAreaValue] = useState(0.0);
-  const [flowRateValue, setFlowRateValue] = useState(0.0);
-  const airSpeedSub = useRef(null);
-  const areaSub = useRef(null);
-  const flowRateSub = useRef(null);
-  const odomSub = useRef(null);
-  
+const OdometerPanelLaser = ({odometerValue, airSpeedValue, odometerResetPub}) => {
+
   useEffect(() => {
-    if (!connected) {
-      return;
-    }
+    const handleKeyDown = (evt) => {
+      if (document.activeElement.tagName === "INPUT") {
+        return;
+      }
+      if (evt.code === "KeyR" && evt.shiftKey) {
+        const confirmed = window.confirm(
+          "Are you sure you want to reset the odometer?"
+        );
+        if (confirmed) {
+          odometerResetPub.current.publish({});
+        }
+      }
+    };
 
-    setConnected(true);
-    // subscribe odometer
-    odometerSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odometer",
-      messageType: "std_msgs/Float64",
-    });
+    window.addEventListener("keydown", handleKeyDown);
 
-    airSpeedSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/airspeed",
-      messageType: "std_msgs/Float32",
-    });
-
-    odometerSub.current.subscribe((msg) => {
-      setOdometerValue(msg.data);
-    });
-    airSpeedSub.current.subscribe((msg) => {
-      setAirSpeedValue(msg.data);
-    });
-
-    odomSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odom",
-      messageType: "nav_msgs/Odometry",
-    });
-    odomSub.current.subscribe((msg) => {
-      // // console.log(msg);
-      setAirSpeedValue(msg.pose.pose.position.x);
-    });
-  }, [connected]);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
   return (
     <div className="card bg-base-100">
       <div className="card-body">

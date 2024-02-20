@@ -46,7 +46,19 @@ let mediaRecorder = null;
 let videoStream = null;
 let chunks = [];
 
-function MappingPage({ ros, connected, setConnected }) {
+function MappingPage({
+  ros,
+  connected,
+  setConnected,
+  odometerValue,
+  moveDistancePub,
+  stopAutoPub,
+  cmdVelPub,
+  airSpeedValue,
+  odometerResetPub,
+  edgeFront,
+  edgeRear
+}) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
   const [place, setplace] = useState("");
@@ -61,14 +73,7 @@ function MappingPage({ ros, connected, setConnected }) {
   const [showForm, setShowForm] = useState(false);
   const [showFormLogin, setShowFormLogin] = useState(false);
   const [temperature, setTemperature] = useState(0.0);
-  const [edgeFront, setEdgeFront] = useState(true);
-  const [edgeRear, setEdgeRear] = useState(true);
 
-  const cmdVelPub = useRef(null);
-  const edgeFrontSub = useRef(null);
-  const edgeRearSub = useRef(null);
-  const odometerSub = useRef(null);
-  const airSpeedSub = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
@@ -77,6 +82,7 @@ function MappingPage({ ros, connected, setConnected }) {
   const canvasRefSmall = useRef(null);
 
   const [isRecording, setIsRecording] = useState(false);
+  const [intervalId, setIntervalId] = useState(0);
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -92,6 +98,7 @@ function MappingPage({ ros, connected, setConnected }) {
   const [geninput, setgeninput] = useState({
     n: "",
   });
+
   const [mappingStatus, setmappingStatus] = useState(false);
   const [scanningStatus, setscanningStatus] = useState(false);
   const handleGeneratePDF = async (e) => {
@@ -122,6 +129,23 @@ function MappingPage({ ros, connected, setConnected }) {
     }
     return () => {};
   }, [location.pathname]);
+  useEffect(() => {
+    console.log("edgeFront", edgeFront);
+    if (!edgeFront) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeFront]);
+
+  useEffect(() => {
+    console.log("edgeRear", edgeRear);
+    if (!edgeRear) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeRear]);
 
   useEffect(() => {
     const verifyCookie = async () => {
@@ -546,13 +570,77 @@ function MappingPage({ ros, connected, setConnected }) {
       image.src = "";
     };
   }, [url, swapCameraStatus]);
+  const handleStart = (evt) => {
+    // console.log("start", evt);
+
+    const newIntervalId = setInterval(() => {
+      try {
+        cmdVelPub.current.publish(twist);
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    }, 100);
+    setIntervalId(newIntervalId);
+  };
+  const handleMove = (evt) => {
+    // // console.log(evt.y);
+    if (showAuto) {
+      if (getScaledValue(evt.y, -1, 1, -maxLinear, maxLinear) > 0) {
+        setStartPlot(true);
+      } else {
+        setCam(1);
+      }
+    }
+    twist = new ROSLIB.Message({
+      linear: {
+        x: getScaledValue(evt.y, -1, 1, -maxLinear, maxLinear),
+        y: 0.0,
+        z: 0.0,
+      },
+      angular: {
+        x: 0.0,
+        y: 0.0,
+        z: getScaledValue(evt.x, -1, 1, maxAngular, -maxAngular),
+      },
+    });
+  };
+
+  const handleStop = (evt) => {
+    // console.log("stop");
+    if (showAuto) {
+      setStartPlot(false);
+    }
+    twist = new ROSLIB.Message({
+      linear: {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+      },
+      angular: {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+      },
+    });
+
+    try {
+      cmdVelPub.current.publish(twist);
+      if (intervalId) {
+        clearInterval(intervalId);
+        setIntervalId(0);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  };
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       var gamepads = navigator.getGamepads();
-      // // console.log(gamepads[0]);
+      // console.log(gamepads[0]);
 
       if (arrowUp || arrowDown || arrowLeft || arrowRight) {
-        // console.log("move");
+        console.log("move");
         arrowMove = true;
         let joyTwist = new ROSLIB.Message({
           linear: {
@@ -693,7 +781,7 @@ function MappingPage({ ros, connected, setConnected }) {
         return;
       } else if (arrowMove) {
         arrowMove = false;
-        // console.log("stop");
+        console.log("stop");
         const joyTwist = new ROSLIB.Message({
           linear: {
             x: 0.0,
@@ -712,7 +800,6 @@ function MappingPage({ ros, connected, setConnected }) {
       if (!gamepads[0]) {
         return;
       }
-
       if (
         gamepads[0].axes[0] > 0.005 ||
         gamepads[0].axes[0] < -0.005 ||
@@ -725,9 +812,9 @@ function MappingPage({ ros, connected, setConnected }) {
         arrowLeft ||
         arrowRight
       ) {
-        // console.log("move");
+        console.log("move");
         move = true;
-        // // console.log(gamepads[0].axes);
+        // console.log(gamepads[0].axes);
         let joyTwist = new ROSLIB.Message({
           linear: {
             x: getScaledValue(
@@ -765,7 +852,7 @@ function MappingPage({ ros, connected, setConnected }) {
         cmdVelPub.current.publish(joyTwist);
       } else if (move) {
         move = false;
-        // console.log("stop");
+        console.log("stop");
         const joyTwist = new ROSLIB.Message({
           linear: {
             x: 0.0,
@@ -802,14 +889,34 @@ function MappingPage({ ros, connected, setConnected }) {
       if (document.activeElement.tagName === "INPUT") {
         return; // Do nothing if an input element has focus
       }
-
       // console.log(evt.code);
       if (evt.code === "Digit1") {
+        console.log("cam 1");
         setCam(1);
+        setShowPtzCtrl(false);
       } else if (evt.code === "Digit2") {
         setCam(2);
+        setShowPtzCtrl(false);
       } else if (evt.code === "Digit3") {
         setCam(3);
+        setShowPtzCtrl(false);
+      } else if (evt.code === "Digit4") {
+        setCam(4);
+        setShowPtzCtrl(true);
+      } else if (evt.code === "Digit5") {
+        setCam(5);
+        setShowPtzCtrl(false);
+        55;
+      } else if (evt.code === "KeyF") {
+        // console.log("brush up");
+        handleBrushArm("up");
+      } else if (evt.code === "KeyV") {
+        // console.log("brush down");
+        handleBrushArm("down");
+      } else if (evt.code === "KeyQ") {
+        brushState.current = !brushState.current;
+        // console.log(brushState.current);
+        handleBrushSpin(brushState.current);
       } else if (evt.code === "ArrowUp") {
         arrowUp = true;
         // // console.log("up press");
@@ -822,8 +929,34 @@ function MappingPage({ ros, connected, setConnected }) {
       }
     });
 
+    window.addEventListener("keyup", (evt) => {
+      if (evt.code === "KeyF" || evt.code === "KeyV") {
+        // console.log("brush stop");
+        handleBrushArm("stop");
+      } else if (evt.code === "ArrowUp") {
+        arrowUp = false;
+        // // console.log("up lift");
+      } else if (evt.code === "ArrowDown") {
+        arrowDown = false;
+      } else if (evt.code === "ArrowLeft") {
+        arrowLeft = false;
+      } else if (evt.code === "ArrowRight") {
+        arrowRight = false;
+      } else if (
+        evt.code === "KeyW" ||
+        evt.code === "KeyA" ||
+        evt.code === "KeyS" ||
+        evt.code === "KeyD" ||
+        evt.code === "KeyZ" ||
+        evt.code === "KeyX"
+      ) {
+        handlePtz("stop");
+      }
+    });
+
     return () => {
       window.addEventListener("keyup", null);
+      window.addEventListener("keydown", null);
       window.removeEventListener("gamepadconnected", (event) => {
         // console.log("A gamepad connected:");
         // console.log(event.gamepad);
@@ -847,53 +980,6 @@ function MappingPage({ ros, connected, setConnected }) {
       setSwapCameraStatus(true);
     }
   }
-
-  useEffect(() => {
-    if (!connected) {
-      return;
-    }
-
-    setConnected(true);
-    // publisher for robot movement
-    cmdVelPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/cmd_vel",
-      messageType: "geometry_msgs/Twist",
-    });
-
-    // subscribe edge front
-    edgeFrontSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/front",
-      messageType: "std_msgs/Bool",
-    });
-    edgeFrontSub.current.subscribe((msg) => {
-      setEdgeFront(msg.data);
-    });
-
-    // subscribe edge rear
-    edgeRearSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/rear",
-      messageType: "std_msgs/Bool",
-    });
-    edgeRearSub.current.subscribe((msg) => {
-      setEdgeRear(msg.data);
-    });
-
-    // subscribe odometer
-    odometerSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/odometer",
-      messageType: "std_msgs/Float64",
-    });
-
-    airSpeedSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/airspeed",
-      messageType: "std_msgs/Float32",
-    });
-  }, [connected]);
 
   useEffect(() => {
     // // console.log(canvas);
@@ -1007,7 +1093,6 @@ function MappingPage({ ros, connected, setConnected }) {
             Logout={Logout}
             setShowJoystick={setShowJoystick}
             setShowShortcuts={setShowShortcuts}
-            temperature={temperature}
             showBtnStartTrip={showBtnStartTrip}
             showBtnEndTrip={showBtnEndTrip}
             restartService={restartService}
@@ -1027,6 +1112,10 @@ function MappingPage({ ros, connected, setConnected }) {
             endTrip={endTrip}
             startTrip={startTrip}
             showJoystick={showJoystick}
+            setCam={setCam}
+            moveDistancePub={moveDistancePub}
+            stopAutoPub={stopAutoPub}
+            odometerValue={odometerValue}
           />
         </div>
         <div className="row-span-10 flex ">
@@ -1162,7 +1251,7 @@ function MappingPage({ ros, connected, setConnected }) {
                         }}
                         onClick={swapCamera}
                       >
-                        Swap Camera
+                        Swap View
                       </button>
                     </div>
                   </div>
@@ -1180,7 +1269,7 @@ function MappingPage({ ros, connected, setConnected }) {
                       className="btn btn-neutral btn-block"
                       onClick={swapCamera}
                     >
-                      Swap Camera
+                      Swap View
                     </button>
                   </div>
                 )}
@@ -1189,10 +1278,11 @@ function MappingPage({ ros, connected, setConnected }) {
           </div>
         </div>
         <div className="row-span-1">
-          <OdometerPanel
-            ros={ros}
-            connected={connected}
+        <OdometerPanel
             setConnected={setConnected}
+            odometerValue={odometerValue}
+            airSpeedValue={airSpeedValue}
+            odometerResetPub={odometerResetPub}
           />
         </div>
         {showJoystick && (
@@ -1334,7 +1424,6 @@ function MappingPage({ ros, connected, setConnected }) {
                   </tr>
                 </tbody>
               </table>
-              Z
             </div>
           </div>
         </Modal.Body>

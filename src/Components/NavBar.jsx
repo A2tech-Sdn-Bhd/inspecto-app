@@ -31,7 +31,11 @@ const NavBar = ({
   handleTripBtns,
   endTrip,
   startTrip,
-  showJoystick
+  showJoystick,
+  setCam,
+  moveDistancePub,
+  stopAutoPub,
+  odometerValue
 }) => {
   const [temperature, setTemperature] = useState(0.0);
   const temperatureSub = useRef(null);
@@ -103,7 +107,7 @@ const NavBar = ({
           >
             <BsJoystick color="white" size={30}></BsJoystick>
           </button>
-          <StartAutomation />
+          <StartAutomation moveDistancePub={moveDistancePub} stopAutoPub={stopAutoPub} odometerValue={odometerValue}/>
           {showBtnStartTrip && (
             <button
               className="btn btn-neutral"

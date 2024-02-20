@@ -7,14 +7,12 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-import ChartJsImage from "chartjs-to-image";
+import { Line } from "react-chartjs-2";
 import { useEffect, useState } from "react";
-import { Buffer } from "buffer/";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
-window.Buffer = Buffer;
 const GeneratePDF = () => {
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const [imageSrc, setImageSrc] = useState(null);
@@ -37,8 +35,207 @@ const GeneratePDF = () => {
   const currentTime = new Date().toLocaleTimeString();
   const endTime = [[tripID, currentTime]];
   const navigate = useNavigate();
+  let chartData;
+  let options;
 
   useEffect(() => {
+    localStorage.setItem(
+      "chart_data",
+      JSON.stringify([
+        {
+          x: "-1.13",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.10",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.08",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.06",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.04",
+          diameter: "29.38",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.02",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.00",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.03",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.06",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.08",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.10",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.13",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.17",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.19",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.21",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.23",
+          diameter: "29.79",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.25",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.27",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.29",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.31",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.33",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.36",
+          diameter: "29.59",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.39",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.41",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.43",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.45",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.48",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.50",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.52",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.54",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.57",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+        {
+          x: "-1.59",
+          diameter: "20.55",
+          lowRange: "45.00",
+          highRange: "15.00",
+        },
+      ])
+    );
     const verifyCookie = async () => {
       if (!cookies.token_app) {
         navigate("/login");
@@ -77,7 +274,7 @@ const GeneratePDF = () => {
         imageData.push({
           inspectoName: inspectoName,
           src: listImg[i][1],
-          odomVal: listImg[i][2],
+          odomVal: parseFloat(listImg[i][2]).toFixed(2),
         });
       }
     }
@@ -159,43 +356,50 @@ const GeneratePDF = () => {
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("chart_data"));
     if (data && data.length > 0) {
-      const columns = Object.keys(data[0]);
+      const lowRangeValues = data.map((item) => parseFloat(item.lowRange));
+      const highRangeValues = data.map((item) => parseFloat(item.highRange));
 
-      const myChart = new ChartJsImage();
-      myChart.setConfig({
-        type: "line",
-        data: {
-          labels: data.map((item) => item[columns[0]]),
-          datasets: [
-            {
-              label: "Low Range",
-              data: data.map((item) => item[columns[1]]),
-              borderColor: "rgb(255, 99, 132)",
-              borderWidth: 1,
-            },
-            {
-              label: "Diameter",
-              data: data.map((item) => item[columns[2]]),
-              borderColor: "rgb(54, 162, 235)",
-              borderWidth: 1,
-            },
-            {
-              label: "High Range",
-              data: data.map((item) => item[columns[3]]),
-              borderColor: "rgb(75, 192, 192)",
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
+      const lowRangeMin = lowRangeValues - 10;
+      const highRangeMax = highRangeValues + 10;
+      const columns = Object.keys(data[0]);
+      const xValues = data.map((item) => parseFloat(item.x));
+      const diameterValues = data.map((item) => parseFloat(item.diameter));
+      chartData = {
+        labels: xValues,
+        datasets: [
+          {
+            label: "Diameter",
+            data: diameterValues,
+            fill: false,
+            backgroundColor: "rgb(255, 99, 132)",
+            borderColor: "rgba(255, 99, 132, 0.2)",
+          },
+          {
+            label: "Low Range",
+            data: lowRangeValues,
+            fill: false,
+            backgroundColor: "rgb(54, 162, 235)",
+            borderColor: "rgba(54, 162, 235, 0.2)",
+          },
+          {
+            label: "High Range",
+            data: highRangeValues,
+            fill: false,
+            backgroundColor: "rgb(75, 192, 192)",
+            borderColor: "rgba(75, 192, 192, 0.2)",
+          },
+        ],
+      };
+      console.log(chartData);
+      options = {
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: lowRangeMin,
+            max: highRangeMax,
           },
         },
-      });
-      myChart.toDataUrl().then((data) => setImageSrc(data));
+      };
     }
   }, []);
 
@@ -329,7 +533,10 @@ const GeneratePDF = () => {
 
   return (
     <div>
-      <PdfDoc />
+      <>
+        <PdfDoc />
+        <Line data={chartData} options={options} />
+      </>
     </div>
   );
 };

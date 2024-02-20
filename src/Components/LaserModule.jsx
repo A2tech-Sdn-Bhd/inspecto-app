@@ -14,7 +14,7 @@ const LaserModule = ({laserStatus,setLaserStatus}) => {
         
       }
     });
-  });
+  },[]);
 
   const startLaser = () => {
     axios
@@ -24,6 +24,11 @@ const LaserModule = ({laserStatus,setLaserStatus}) => {
       })
       .catch((err) => {
         console.log(err);
+        if(err.response.status){
+          console.log(err);
+        }
+        
+        setLaserStatus(false);
       });
   };
   const stopLaser = () => {

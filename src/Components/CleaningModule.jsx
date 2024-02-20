@@ -2,33 +2,10 @@ import React, { useState } from "react";
 import * as ROSLIB from "roslib";
 import { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-const CleaningModule = ({ connected, setConnected }) => {
-  const brushArmPub = useRef(null);
-  const brushSpin = useRef(null);
+const CleaningModule = ({brushArmPub, brushSpin }) => {
   const [brushStatus, setBrushStatus] = useState(false);
-  const ros = useRef(null);
   const navigate = useNavigate();
-  useEffect(() => {
-    if (!connected) {
-      return;
-    }
 
-    if (brushArmPub) {
-      brushArmPub.current = new ROSLIB.Topic({
-        ros: ros.current,
-        name: "/brush/up_down",
-        messageType: "std_msgs/String",
-      });
-    }
-    // publisher for on/off brush
-    if (brushSpin) {
-      brushSpin.current = new ROSLIB.Topic({
-        ros: ros.current,
-        name: "/brush/spin",
-        messageType: "std_msgs/Bool",
-      });
-    }
-  }, [connected]);
   const handleBrushArm = (payload) => {
     if (brushArmPub.current) {
       brushArmPub.current.publish({ data: payload });
@@ -39,18 +16,6 @@ const CleaningModule = ({ connected, setConnected }) => {
       brushSpin.current.publish({ data: payload });
     }
   };
-  useEffect(() => {
-    if (ros.current) {
-      return;
-    }
-    ros.current = new ROSLIB.Ros({ url: "ws://192.168.88.2:8080" });
-    ros.current.on("error", function (error) {
-      setConnected(false);
-    });
-    ros.current.on("connection", function () {
-      setConnected(true);
-    });
-  }, []);
   useEffect(() => {
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {

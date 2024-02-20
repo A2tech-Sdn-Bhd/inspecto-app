@@ -44,8 +44,20 @@ let arrowRight = false;
 let mediaRecorder = null;
 let videoStream = null;
 let chunks = [];
-
-function CrackDetectionPage({ ros, connected, setConnected }) {
+function CrackDetectionPage({
+  ros,
+  connected,
+  setConnected,
+  odometerValue,
+  moveDistancePub,
+  stopAutoPub,
+  cmdVelPub,
+  edgeFrontSub,
+  airSpeedValue,
+  odometerResetPub,
+  edgeFront,
+  edgeRear
+}) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
   const [place, setplace] = useState("");
@@ -60,17 +72,6 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showFormLogin, setShowFormLogin] = useState(false);
-  const [edgeFront, setEdgeFront] = useState(true);
-  const [edgeRear, setEdgeRear] = useState(true);
-
-  const cmdVelPub = useRef(null);
-  const brushArmPub = useRef(null);
-  const brushSpin = useRef(null);
-  const edgeFrontSub = useRef(null);
-  const edgeRearSub = useRef(null);
-  const startAutoPub = useRef(null);
-  const stopAutoPub = useRef(null);
-  const moveDistancePub = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
@@ -80,8 +81,6 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
   const [isRecording, setIsRecording] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
-
-  const [odometerValue, setOdometerValue] = useState(0.0);
 
   const [showBtnStartTrip, setShowBtnStartTrip] = useState(true);
   const [showBtnEndTrip, setShowBtnEndTrip] = useState(false);
@@ -101,7 +100,6 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
       n: "",
     });
     localStorage.setItem("generatepdfyet", true);
-    localStorage.setItem("chart_data", JSON.stringify(realtimeData));
   };
   useEffect(() => {
     if (location.pathname === "/") {
@@ -123,6 +121,21 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
     }
     return () => {};
   }, [location.pathname]);
+  useEffect(() => {
+    if (!edgeFront) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeFront]);
+
+  useEffect(() => {
+    if (!edgeRear) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeRear]);
   useEffect(() => {
     const verifyCookie = async () => {
       if (!cookies.token_app) {
@@ -487,7 +500,7 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
       const ch = canvasRefCrack.current.height;
       context.clearRect(0, 0, cw, ch);
       if (cam != 4 && imageLoaded) {
-        context.drawImage(imageCrack, 0, 0, 1100, 720);
+        context.drawImage(imageCrack, 0, 0, 1113, 720);
         context.font = "30px Georgia";
         const textWidth = context.measureText(text).width;
         context.globalAlpha = 1.0;
@@ -812,68 +825,6 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
       });
     };
   }, []);
-
-  useEffect(() => {
-    if (!connected) {
-      return;
-    }
-
-    setConnected(true);
-    // publisher for robot movement
-    cmdVelPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/cmd_vel",
-      messageType: "geometry_msgs/Twist",
-    });
-    // publisher for brush arm up/down
-    brushArmPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/brush/up_down",
-      messageType: "std_msgs/String",
-    });
-    // publisher for on/off brush
-    brushSpin.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/brush/spin",
-      messageType: "std_msgs/Bool",
-    });
-    // subscribe edge front
-    edgeFrontSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/front",
-      messageType: "std_msgs/Bool",
-    });
-    edgeFrontSub.current.subscribe((msg) => {
-      setEdgeFront(msg.data);
-    });
-
-    // subscribe edge rear
-    edgeRearSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/edge/rear",
-      messageType: "std_msgs/Bool",
-    });
-    edgeRearSub.current.subscribe((msg) => {
-      setEdgeRear(msg.data);
-    });
-
-    startAutoPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/start_auto",
-      messageType: "std_msgs/Empty",
-    });
-    stopAutoPub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/stop_auto",
-      messageType: "std_msgs/Empty",
-    });
-    moveDistancePub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/move_distance",
-      messageType: "std_msgs/Float32",
-    });
-  }, [connected]);
-
   useEffect(() => {
     // // console.log(canvas);
     if (cam == 1) {
@@ -1065,8 +1016,8 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
       }}
     >
       <div className="flex flex-col w-full h-full">
-        <NavBar
-        ros={ros}
+      <NavBar
+          ros={ros}
           connected={connected}
           Logout={Logout}
           setShowJoystick={setShowJoystick}
@@ -1090,6 +1041,10 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
           endTrip={endTrip}
           startTrip={startTrip}
           showJoystick={showJoystick}
+          setCam={setCam}
+          moveDistancePub={moveDistancePub}
+          stopAutoPub={stopAutoPub}
+          odometerValue={odometerValue}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-8">
@@ -1141,7 +1096,7 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
                 <canvas
                   className={` ${cam === 4 ? "hidden" : ""}`}
                   ref={canvasRefCrack}
-                  width={1100}
+                  width={1113}
                   height={670}
                 ></canvas>
               </div>
@@ -1185,9 +1140,10 @@ function CrackDetectionPage({ ros, connected, setConnected }) {
             </div>
           </div>
           <OdometerPanel
-            ros={ros}
-            connected={connected}
             setConnected={setConnected}
+            odometerValue={odometerValue}
+            airSpeedValue={airSpeedValue}
+            odometerResetPub={odometerResetPub}
           />
         </>
         {showJoystick && (
