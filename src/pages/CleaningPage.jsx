@@ -246,6 +246,10 @@ function CleaningPage({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
+      localStorage.removeItem("chart")
+      localStorage.removeItem("chart_data")
+      localStorage.removeItem("tripStatus");
+      
     }
   };
 

@@ -234,7 +234,8 @@ function App() {
             edgeFrontSub={edgeFrontSub}
             airSpeedValue={airSpeedValue}
             odometerResetPub={odometerResetPub}
-            edgeFront={edgeFront} edgeRear={edgeRear}
+            edgeFront={edgeFront}
+            edgeRear={edgeRear}
           />
         }
       />
@@ -253,7 +254,8 @@ function App() {
             edgeFrontSub={edgeFrontSub}
             airSpeedValue={airSpeedValue}
             odometerResetPub={odometerResetPub}
-            edgeFront={edgeFront} edgeRear={edgeRear}
+            edgeFront={edgeFront}
+            edgeRear={edgeRear}
           />
         }
       />
@@ -274,7 +276,8 @@ function App() {
             odometerResetPub={odometerResetPub}
             brushArmPub={brushArmPub}
             brushSpin={brushSpin}
-            edgeFront={edgeFront} edgeRear={edgeRear}
+            edgeFront={edgeFront}
+            edgeRear={edgeRear}
           />
         }
       />
@@ -293,7 +296,8 @@ function App() {
             edgeFrontSub={edgeFrontSub}
             airSpeedValue={airSpeedValue}
             odometerResetPub={odometerResetPub}
-            edgeFront={edgeFront} edgeRear={edgeRear}
+            edgeFront={edgeFront}
+            edgeRear={edgeRear}
           />
         }
       />

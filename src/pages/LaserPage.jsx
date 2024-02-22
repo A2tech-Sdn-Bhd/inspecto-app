@@ -13,6 +13,7 @@ import Draggable from "react-draggable";
 import { saveAs } from "file-saver";
 import { Button, Modal } from "react-daisyui";
 import "../App.css";
+import * as htmlToImage from 'html-to-image';
 import {
   LineChart,
   Line,
@@ -64,6 +65,8 @@ function LaserPage({
   cmdVelPub,
   airSpeedValue,
   odometerResetPub,
+  edgeFront,
+  edgeRear,
 }) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
@@ -83,13 +86,11 @@ function LaserPage({
   const [showAuto, setShowAuto] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
   const [startPlot, setStartPlot] = useState(false);
-  const [edgeFront, setEdgeFront] = useState(true);
-  const [edgeRear, setEdgeRear] = useState(true);
-
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
 
   const canvasRef = useRef(null);
+  const chartRef = useRef(null);
   const [isRecording, setIsRecording] = useState(false);
   const diameterSub = useRef(null);
 
@@ -116,18 +117,18 @@ function LaserPage({
     n: "",
   });
   const handleGeneratePDF = async (e) => {
+    const chartt = document.getElementById("chart");
+    const response = await htmlToImage.toPng(chartt);
+    localStorage.setItem("chart", `"${response}"`);
     window.open("/generatepdf", "_blank");
     setgeninput({
       ...geninput,
       n: "",
     });
     localStorage.setItem("generatepdfyet", true);
-    localStorage.setItem("chart_data", JSON.stringify(realtimeData));
   };
 
   const submitForm = () => {
-    console.log(inputDiameter);
-    console.log(inputTol);
     if (inputDiameter == "") {
       inputDiameterRef.current.classList.add("input-error");
       inputDiameterRef.current.focus();
@@ -142,23 +143,27 @@ function LaserPage({
       setStartPlot(true);
     }
   };
-  // useEffect(() => {
-  //   console.log("edgeFront", edgeFront);
-  //   if (edgeFront) {
-  //     setModalVisible(true);
-  //   } else {
-  //     setModalVisible(false);
-  //   }
-  // }, [edgeFront]);
+  useEffect(() => {
+    console.log("edgeFront", edgeFront);
+    if (!edgeFront) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeFront]);
 
-  // useEffect(() => {
-  //   console.log("edgeRear", edgeRear);
-  //   if (edgeRear) {
-  //     setModalVisible(true);
-  //   } else {
-  //     setModalVisible(false);
-  //   }
-  // }, [edgeRear]);
+  useEffect(() => {
+    console.log("edgeRear", edgeRear);
+    if (!edgeRear) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeRear]);
+
+  useEffect(()=>{
+    setRealtimeData([{"x":"0.88","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.87","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.86","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.85","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.84","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.83","diameter":"29.18","lowRange":"45.00","highRange":"15.00"},{"x":"0.82","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.81","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.80","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.79","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.78","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.77","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.76","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.75","diameter":"29.18","lowRange":"45.00","highRange":"15.00"},{"x":"0.74","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.73","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.72","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.71","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.70","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.69","diameter":"29.18","lowRange":"45.00","highRange":"15.00"},{"x":"0.68","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.67","diameter":"29.18","lowRange":"45.00","highRange":"15.00"},{"x":"0.66","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.65","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.64","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.63","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.62","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.61","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.60","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.59","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.57","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.56","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.55","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.54","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.53","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.52","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.51","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.50","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.49","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.47","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.46","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.45","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.44","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.43","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.44","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.45","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.46","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.47","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.48","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.49","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.50","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.51","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.52","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.51","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.50","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.48","diameter":"28.97","lowRange":"45.00","highRange":"15.00"},{"x":"0.47","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.46","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.45","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.44","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.43","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.42","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.43","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.44","diameter":"29.18","lowRange":"45.00","highRange":"15.00"},{"x":"0.46","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.47","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.48","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.49","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.50","diameter":"28.97","lowRange":"45.00","highRange":"15.00"},{"x":"0.51","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.53","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.55","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.56","diameter":"29.38","lowRange":"45.00","highRange":"15.00"},{"x":"0.57","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.58","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.59","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.60","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.61","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.62","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.63","diameter":"29.18","lowRange":"45.00","highRange":"15.00"},{"x":"0.64","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.65","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.67","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.68","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.69","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.70","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.71","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.72","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.73","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.74","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.75","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.76","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.77","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.79","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.80","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.81","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.82","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.83","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.84","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.86","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.87","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.88","diameter":"20.55","lowRange":"45.00","highRange":"15.00"},{"x":"0.89","diameter":"29.79","lowRange":"45.00","highRange":"15.00"},{"x":"0.90","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.91","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.93","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.94","diameter":"29.59","lowRange":"45.00","highRange":"15.00"},{"x":"0.95","diameter":"29.38","lowRange":"45.00","highRange":"15.00"}])
+  },[])
   useEffect(() => {
     window.addEventListener("gamepadconnected", (event) => {
       // console.log("A gamepad connected:");
@@ -385,6 +390,10 @@ function LaserPage({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
+      localStorage.removeItem("chart")
+      localStorage.removeItem("chart_data")
+      localStorage.removeItem("tripStatus");
+      
     }
   };
 
@@ -475,14 +484,11 @@ function LaserPage({
 
       diameterSub.current.subscribe((msg) => {
         const currentX = msg.field_of_view.toFixed(2);
-        console.log("abs", Math.abs(currentX - prevX));
         if (
           prevX === null ||
-          (Math.abs(currentX - prevX) >= 0.02 && currentX !== prevX)
+          (Math.abs(currentX - prevX) >= 0.002 && currentX !== prevX)
         ) {
-          console.log("plotting ", realtimeData.length);
           var realDiameter = msg.min_range.toFixed(2);
-          //+- 20% tolerance
           const inputD = parseFloat(inputDiameter);
           const tol = parseFloat(inputTol / 100);
           const highTol = (inputD + inputD * tol).toFixed(2);
@@ -496,7 +502,7 @@ function LaserPage({
             highRange: lowTol,
           };
           setRealtimeData((prevData) => [...prevData, newDataPoint]);
-          setChartWidth(Math.max(1595, realtimeData.length * 20));
+          
 
           if (chartContainerRef.current) {
             chartContainerRef.current.scrollLeft =
@@ -510,7 +516,6 @@ function LaserPage({
           }
         }
         if (counter >= 30) {
-          //counter may vary depends on the speed of moving, now when moving, the counter can reach 11
           setAutoStart(false);
           setStartPlot(false);
           diameterSub.current.unsubscribe();
@@ -527,6 +532,10 @@ function LaserPage({
       prevX = null;
     };
   }, [startPlot]);
+
+  useEffect(() =>{
+    setChartWidth(Math.max(1595, realtimeData.length * 20));
+  },[realtimeData]);
 
   useEffect(() => {
     videoStream = canvasRef.current.captureStream(30);
@@ -1248,18 +1257,21 @@ function LaserPage({
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <div className="flex flex-row">
-                      <div className="ms-4" ref={chartContainerRef}>
+                      <div className="ms-4" >
                         <h1 className="font-bold">Graph Visualization</h1>
                         <div
+                        ref={chartContainerRef}
                           style={{
                             overflowX: "scroll",
-                            width:"1595px",
+                            width: "1595px",
                           }}
                         >
                           <LineChart
                             width={chartWidth}
                             height={170}
                             data={realtimeData}
+                            ref={chartRef}
+                            id="chart"
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="x" interval={1} />
@@ -1428,15 +1440,15 @@ function LaserPage({
         <Modal.Body>
           <div className="flex flex-col gap-1">
             <div className="flex justify-center gap-2">
-              {(edgeFront === true || edgeRear === true) && (
+              {(edgeFront === false || edgeRear === false) && (
                 <GoAlert size={40} color="red"></GoAlert>
               )}
             </div>
             <div className="flex flex-col w-full">
-              {edgeFront && (
+              {!edgeFront && (
                 <h1 className="w-full items-center">Front Edge Detected</h1>
               )}
-              {edgeRear && (
+              {!edgeRear && (
                 <h1 className="w-full items-center">Rear Edge Detected</h1>
               )}
             </div>

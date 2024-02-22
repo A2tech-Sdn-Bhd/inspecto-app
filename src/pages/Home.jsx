@@ -133,6 +133,7 @@ function Home({
     }
     return () => {};
   }, [location.pathname]);
+  
   useEffect(() => {
     console.log("edgeFront", edgeFront);
     if (!edgeFront) {
@@ -161,6 +162,21 @@ function Home({
           { withCredentials: true }
         );
         const { status, up, uid } = data;
+        if (up) {
+          up.forEach((item) => {
+            switch (item.p_id) {
+              case "4":
+                setGenerateReportAccess(item.up_status === 1);
+                break;
+              default:
+                break;
+            }
+          });
+        }
+        if(uid==1){
+          console.log("tak legit aa");
+          navigate('/login')
+        }
         if (uid == 1) {
           console.log("tak legit aa");
           navigate("/login");
@@ -283,6 +299,10 @@ function Home({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
+      localStorage.removeItem("chart")
+      localStorage.removeItem("chart_data")
+      localStorage.removeItem("tripStatus");
+      
     }
   };
 

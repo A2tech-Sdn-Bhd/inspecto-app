@@ -150,6 +150,9 @@ function CrackDetectionPage({
         if (up) {
           up.forEach((item) => {
             switch (item.p_id) {
+                case "4":
+                  setGenerateReportAccess(item.up_status === 1);
+                  break;
               case "6":
                 setCrackDetectionAccess(item.up_status === 1);
                 break;
@@ -260,6 +263,10 @@ function CrackDetectionPage({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
+      localStorage.removeItem("chart")
+      localStorage.removeItem("chart_data")
+      localStorage.removeItem("tripStatus");
+      
     }
   };
 

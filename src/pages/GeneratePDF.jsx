@@ -7,8 +7,8 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-import { Line } from "react-chartjs-2";
-import { useEffect, useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -35,207 +35,8 @@ const GeneratePDF = () => {
   const currentTime = new Date().toLocaleTimeString();
   const endTime = [[tripID, currentTime]];
   const navigate = useNavigate();
-  let chartData;
-  let options;
 
   useEffect(() => {
-    localStorage.setItem(
-      "chart_data",
-      JSON.stringify([
-        {
-          x: "-1.13",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.10",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.08",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.06",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.04",
-          diameter: "29.38",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.02",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.00",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.03",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.06",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.08",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.10",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.13",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.17",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.19",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.21",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.23",
-          diameter: "29.79",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.25",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.27",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.29",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.31",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.33",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.36",
-          diameter: "29.59",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.39",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.41",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.43",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.45",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.48",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.50",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.52",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.54",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.57",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-        {
-          x: "-1.59",
-          diameter: "20.55",
-          lowRange: "45.00",
-          highRange: "15.00",
-        },
-      ])
-    );
     const verifyCookie = async () => {
       if (!cookies.token_app) {
         navigate("/login");
@@ -254,6 +55,7 @@ const GeneratePDF = () => {
 
     verifyCookie();
   }, [cookies, navigate, removeCookie]);
+
   if (!localStorage.getItem(`endTime_${tripID}`)) {
     localStorage.setItem(`endTime_${tripID}`, JSON.stringify(endTime));
   }
@@ -265,6 +67,7 @@ const GeneratePDF = () => {
   const endTimeValue = endTimeArray[endTimeIndex][1];
   const storageKey = `imgSnapshot_${tripID}`;
   const imageData = [];
+  
   if (localStorage && storageKey in localStorage) {
     const listImg = JSON.parse(localStorage.getItem(storageKey));
     if (listImg) {
@@ -354,55 +157,8 @@ const GeneratePDF = () => {
     },
   });
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("chart_data"));
-    if (data && data.length > 0) {
-      const lowRangeValues = data.map((item) => parseFloat(item.lowRange));
-      const highRangeValues = data.map((item) => parseFloat(item.highRange));
-
-      const lowRangeMin = lowRangeValues - 10;
-      const highRangeMax = highRangeValues + 10;
-      const columns = Object.keys(data[0]);
-      const xValues = data.map((item) => parseFloat(item.x));
-      const diameterValues = data.map((item) => parseFloat(item.diameter));
-      chartData = {
-        labels: xValues,
-        datasets: [
-          {
-            label: "Diameter",
-            data: diameterValues,
-            fill: false,
-            backgroundColor: "rgb(255, 99, 132)",
-            borderColor: "rgba(255, 99, 132, 0.2)",
-          },
-          {
-            label: "Low Range",
-            data: lowRangeValues,
-            fill: false,
-            backgroundColor: "rgb(54, 162, 235)",
-            borderColor: "rgba(54, 162, 235, 0.2)",
-          },
-          {
-            label: "High Range",
-            data: highRangeValues,
-            fill: false,
-            backgroundColor: "rgb(75, 192, 192)",
-            borderColor: "rgba(75, 192, 192, 0.2)",
-          },
-        ],
-      };
-      console.log(chartData);
-      options = {
-        scales: {
-          y: {
-            beginAtZero: true,
-            min: lowRangeMin,
-            max: highRangeMax,
-          },
-        },
-      };
-    }
+    setImageSrc(JSON.parse(localStorage.getItem("chart")))
   }, []);
-
   const PdfDoc = () => (
     <PDFViewer className="h-screen w-screen">
       <Document title={titlename}>
@@ -530,12 +286,10 @@ const GeneratePDF = () => {
       </Document>
     </PDFViewer>
   );
-
   return (
     <div>
       <>
         <PdfDoc />
-        <Line data={chartData} options={options} />
       </>
     </div>
   );
