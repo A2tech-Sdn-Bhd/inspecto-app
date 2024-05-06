@@ -25,6 +25,7 @@ import ListModuleCard from "../Components/ListModuleCard";
 import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanel from "../Components/OdometerPanel";
 import NavBar from "../Components/NavBar";
+import LightController from "../Components/LightController";
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -62,7 +63,8 @@ function Home({
   airSpeedValue,
   odometerResetPub,
   edgeFront,
-  edgeRear
+  edgeRear,
+  lightIntensityPub,
 }) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
@@ -105,6 +107,10 @@ function Home({
   const [geninput, setgeninput] = useState({
     n: "",
   });
+  const handlePtz =()=>{
+    console.log("ptz");
+
+  }
   const handleGeneratePDF = async (e) => {
     window.open("/generatepdf", "_blank");
     setgeninput({
@@ -133,7 +139,7 @@ function Home({
     }
     return () => {};
   }, [location.pathname]);
-  
+
   useEffect(() => {
     console.log("edgeFront", edgeFront);
     if (!edgeFront) {
@@ -173,9 +179,9 @@ function Home({
             }
           });
         }
-        if(uid==1){
+        if (uid == 1) {
           console.log("tak legit aa");
-          navigate('/login')
+          navigate("/login");
         }
         if (uid == 1) {
           console.log("tak legit aa");
@@ -299,10 +305,9 @@ function Home({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
-      localStorage.removeItem("chart")
-      localStorage.removeItem("chart_data")
+      localStorage.removeItem("chart");
+      localStorage.removeItem("chart_data");
       localStorage.removeItem("tripStatus");
-      
     }
   };
 
@@ -852,7 +857,7 @@ function Home({
         evt.code === "KeyZ" ||
         evt.code === "KeyX"
       ) {
-        handlePtz("stop");
+        // handlePtz("stop");
       }
     });
 
@@ -877,7 +882,9 @@ function Home({
     // // console.log(canvas);
     if (cam == 1) {
       // stopchrome();
+      // setUrl("http://localhost:8082/stream?topic=/camera/color/image_raw");
       setUrl("http://192.168.88.2:8081/stream");
+      // nanti tukar
       // setUrl("http://192.168.0.141:8081/stream");
     } else if (cam == 0) {
       // stopchrome();
@@ -1084,6 +1091,7 @@ function Home({
           moveDistancePub={moveDistancePub}
           stopAutoPub={stopAutoPub}
           odometerValue={odometerValue}
+          cmdVelPub={cmdVelPub}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-8">
@@ -1133,6 +1141,7 @@ function Home({
                 }}
               >
                 {/* Canvas for 2D context */}
+                {/* nanti bukak */}
                 <canvas
                   className={` ${cam === 4 ? "hidden" : ""}`}
                   ref={canvasRef}
@@ -1148,14 +1157,17 @@ function Home({
                 showAuto={showAuto}
                 setShowAuto={setShowAuto}
               />
+              <LightController lightIntensityPub={lightIntensityPub} />
             </div>
           </div>
-          <OdometerPanel
-            setConnected={setConnected}
-            odometerValue={odometerValue}
-            airSpeedValue={airSpeedValue}
-            odometerResetPub={odometerResetPub}
-          />
+          <div className="absolute bottom-10 w-fit" style={{left:"40%"}}>
+            <OdometerPanel
+              setConnected={setConnected}
+              odometerValue={odometerValue}
+              airSpeedValue={airSpeedValue}
+              odometerResetPub={odometerResetPub}
+            />
+          </div>
         </>
 
         {showJoystick && (
@@ -1190,7 +1202,7 @@ function Home({
                     <button
                       className="ptz-button"
                       onMouseDown={() => {
-                        handlePtz("up");
+                        // handlePtz("up");
                         // // console.log("up");
                       }}
                       onMouseUp={() => handlePtz("stop")}
@@ -1202,8 +1214,8 @@ function Home({
                   <div className="flex gap-2">
                     <button
                       className="ptz-button"
-                      onMouseDown={() => handlePtz("left")}
-                      onMouseUp={() => handlePtz("stop")}
+                      // onMouseDown={() => handlePtz("left")}
+                      // onMouseUp={() => handlePtz("stop")}
                     >
                       <AiOutlineArrowLeft color="black" size={45} />
                     </button>
@@ -1217,8 +1229,8 @@ function Home({
                     </strong>
                     <button
                       className="ptz-button"
-                      onMouseDown={() => handlePtz("right")}
-                      onMouseUp={() => handlePtz("stop")}
+                      // onMouseDown={() => handlePtz("right")}
+                      // onMouseUp={() => handlePtz("stop")}
                       style={{ marginLeft: "10px" }}
                     >
                       <AiOutlineArrowRight color="black" size={45} />
@@ -1228,8 +1240,8 @@ function Home({
                   <div className="flex gap-2">
                     <button
                       className="ptz-button"
-                      onMouseDown={() => handlePtz("down")}
-                      onMouseUp={() => handlePtz("stop")}
+                      // onMouseDown={() => handlePtz("down")}
+                      // onMouseUp={() => handlePtz("stop")}
                     >
                       <AiOutlineArrowDown color="black" size={45} />
                     </button>
@@ -1238,15 +1250,15 @@ function Home({
                   <div className="flex gap-2">
                     <button
                       className="ptz-button"
-                      onMouseDown={() => handlePtz("zoomin")}
-                      onMouseUp={() => handlePtz("stop")}
+                      // onMouseDown={() => handlePtz("zoomin")}
+                      // onMouseUp={() => handlePtz("stop")}
                     >
                       <AiOutlineZoomIn color="black" size={45} />
                     </button>
                     <button
                       className="ptz-button"
-                      onMouseDown={() => handlePtz("zoomout")}
-                      onMouseUp={() => handlePtz("stop")}
+                      // onMouseDown={() => handlePtz("zoomout")}
+                      // onMouseUp={() => handlePtz("stop")}
                     >
                       <AiOutlineZoomOut color="black" size={45} />
                     </button>

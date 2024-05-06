@@ -18,6 +18,7 @@ import ReportForm from "../Components/ReportForm";
 import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanel from "../Components/OdometerPanel";
 import NavBar from "../Components/NavBar";
+import LightController from "../Components/LightController";
 
 const maxLinear = 0.25;
 const maxAngular = 1.5;
@@ -56,7 +57,8 @@ function CrackDetectionPage({
   airSpeedValue,
   odometerResetPub,
   edgeFront,
-  edgeRear
+  edgeRear,
+  lightIntensityPub
 }) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
@@ -150,9 +152,9 @@ function CrackDetectionPage({
         if (up) {
           up.forEach((item) => {
             switch (item.p_id) {
-                case "4":
-                  setGenerateReportAccess(item.up_status === 1);
-                  break;
+              case "4":
+                setGenerateReportAccess(item.up_status === 1);
+                break;
               case "6":
                 setCrackDetectionAccess(item.up_status === 1);
                 break;
@@ -263,10 +265,9 @@ function CrackDetectionPage({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
-      localStorage.removeItem("chart")
-      localStorage.removeItem("chart_data")
+      localStorage.removeItem("chart");
+      localStorage.removeItem("chart_data");
       localStorage.removeItem("tripStatus");
-      
     }
   };
 
@@ -959,10 +960,6 @@ function CrackDetectionPage({
       }
     });
   };
-  const handleBrushSpin = (payload) => {
-    brushSpin.current.publish({ data: payload });
-    // // console.log(payload);
-  };
 
   const downloadImage = () => {
     const date = new Date();
@@ -1023,7 +1020,7 @@ function CrackDetectionPage({
       }}
     >
       <div className="flex flex-col w-full h-full">
-      <NavBar
+        <NavBar
           ros={ros}
           connected={connected}
           Logout={Logout}
@@ -1109,7 +1106,7 @@ function CrackDetectionPage({
               </div>
             </div>
             <div className="col-span-3 flex flex-col justify-center">
-              <div className="card bg-base-100 me-4 mb-4">
+              <div className="card bg-base-100 me-4">
                 <div className="card-body">
                   <h2 className="card-title justify-center">
                     Crack detection mode
@@ -1127,7 +1124,8 @@ function CrackDetectionPage({
                   </div>
                 </div>
               </div>
-              <div className="card bg-base-100 me-4">
+              <LightController lightIntensityPub={lightIntensityPub} />
+              <div className="card bg-base-100 me-4 mt-4">
                 <div className="card-body">
                   <div
                     style={{
@@ -1146,12 +1144,14 @@ function CrackDetectionPage({
               </div>
             </div>
           </div>
-          <OdometerPanel
-            setConnected={setConnected}
-            odometerValue={odometerValue}
-            airSpeedValue={airSpeedValue}
-            odometerResetPub={odometerResetPub}
-          />
+          <div className="absolute bottom-10 w-fit" style={{left:"40%"}}>
+            <OdometerPanel
+              setConnected={setConnected}
+              odometerValue={odometerValue}
+              airSpeedValue={airSpeedValue}
+              odometerResetPub={odometerResetPub}
+            />
+          </div>
         </>
         {showJoystick && (
           <>

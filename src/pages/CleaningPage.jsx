@@ -16,7 +16,7 @@ import ReportForm from "../Components/ReportForm";
 import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanel from "../Components/OdometerPanel";
 import NavBar from "../Components/NavBar";
-
+import LightController from "../Components/LightController";
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -55,6 +55,8 @@ function CleaningPage({
   odometerResetPub,
   brushArmPub,
   brushSpin,
+  lightIntensityPub,
+  motorSpeed
 }) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
@@ -1006,7 +1008,8 @@ function CleaningPage({
               </div>
             </div>
             <div className="col-span-2 flex flex-col justify-center">
-              <CleaningModule brushArmPub={brushArmPub} brushSpin={brushSpin} />
+              <CleaningModule brushArmPub={brushArmPub} brushSpin={brushSpin} motorSpeed={motorSpeed} />
+              <LightController lightIntensityPub={lightIntensityPub} />
               {showJoystick && (
                 <>
                   <div className="card bg-base-100 me-4 mt-4">
@@ -1028,7 +1031,7 @@ function CleaningPage({
               )}
             </div>
           </div>
-          <div className="absolute bottom-10">
+          <div className="absolute bottom-10 w-fit" style={{left:"40%"}}>
             <OdometerPanel
               setConnected={setConnected}
               odometerValue={odometerValue}

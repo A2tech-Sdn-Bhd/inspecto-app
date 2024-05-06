@@ -15,6 +15,8 @@ function App() {
   const [connected, setConnected] = useState(false);
   const [odometerValue, setOdometerValue] = useState(0.0);
   const [airSpeedValue, setAirSpeedValue] = useState(0.0);
+  const [edgeFront, setEdgeFront] = useState(true);
+  const [edgeRear, setEdgeRear] = useState(true);
 
   const cmdVelPub = useRef(null);
   const brushArmPub = useRef(null);
@@ -29,10 +31,10 @@ function App() {
   const moveDistancePub = useRef(null);
   const odomSub = useRef(null);
   const resetOdomPub = useRef(null);
-  const [edgeFront, setEdgeFront] = useState(true);
-  const [edgeRear, setEdgeRear] = useState(true);
   const odometerSub = useRef(null);
   const odometerResetPub = useRef(null);
+  const lightIntensityPub = useRef(null);
+  const motorSpeed = useRef(null);
 
   useEffect(() => {
     if (ros.current) {
@@ -76,6 +78,16 @@ function App() {
       name: "/brush/up_down",
       messageType: "std_msgs/String",
     });
+    lightIntensityPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/led_intensity",
+      messageType: "std_msgs/Int16",
+    });
+    motorSpeed.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/brush_speed",
+      messageType: "std_msgs/Int16",
+    });
     // publisher for on/off brush
     brushSpin.current = new ROSLIB.Topic({
       ros: ros.current,
@@ -92,9 +104,6 @@ function App() {
     edgeFrontSub.current.subscribe((msg) => {
       setEdgeFront(msg.data);
     });
-    // console.log(edgeFrontSub);
-    // console.log(edgeRear);
-
     // subscribe edge rear
     edgeRearSub.current = new ROSLIB.Topic({
       ros: ros.current,
@@ -171,7 +180,6 @@ function App() {
       messageType: "nav_msgs/Odometry",
     });
     odomSub.current.subscribe((msg) => {
-      // // console.log(msg);
       setAirSpeedValue(msg.pose.pose.position.x);
     });
   }, [connected]);
@@ -194,6 +202,7 @@ function App() {
             odometerResetPub={odometerResetPub}
             edgeFront={edgeFront}
             edgeRear={edgeRear}
+            lightIntensityPub={lightIntensityPub}
           />
         }
       />
@@ -216,6 +225,7 @@ function App() {
             odometerResetPub={odometerResetPub}
             edgeFront={edgeFront}
             edgeRear={edgeRear}
+            lightIntensityPub={lightIntensityPub}
           />
         }
       />
@@ -236,6 +246,7 @@ function App() {
             odometerResetPub={odometerResetPub}
             edgeFront={edgeFront}
             edgeRear={edgeRear}
+            lightIntensityPub={lightIntensityPub}
           />
         }
       />
@@ -256,6 +267,7 @@ function App() {
             odometerResetPub={odometerResetPub}
             edgeFront={edgeFront}
             edgeRear={edgeRear}
+            lightIntensityPub={lightIntensityPub}
           />
         }
       />
@@ -278,6 +290,8 @@ function App() {
             brushSpin={brushSpin}
             edgeFront={edgeFront}
             edgeRear={edgeRear}
+            lightIntensityPub={lightIntensityPub}
+            motorSpeed={motorSpeed}
           />
         }
       />
@@ -298,6 +312,7 @@ function App() {
             odometerResetPub={odometerResetPub}
             edgeFront={edgeFront}
             edgeRear={edgeRear}
+            lightIntensityPub={lightIntensityPub}
           />
         }
       />

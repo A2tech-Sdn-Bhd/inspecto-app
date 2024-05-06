@@ -20,6 +20,7 @@ import ListCameraCard from "../Components/ListCameraCard";
 import NavBar from "../Components/NavBar";
 import MappingModule from "../Components/MappingModule";
 import ScanningModule from "../Components/ScanningModule";
+import LightController from "../Components/LightController";
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -57,7 +58,8 @@ function MappingPage({
   airSpeedValue,
   odometerResetPub,
   edgeFront,
-  edgeRear
+  edgeRear,
+  lightIntensityPub
 }) {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
@@ -1202,7 +1204,7 @@ function MappingPage({
               <div className="card bg-base-100 me-4">
                 <div className="card-body">
                   <h2 className="card-title justify-center">Mapping Mode</h2>
-                  <div className="mt-2 grid grid-row gap-2 ">
+                  <div className="mt-2 grid grid-cols-2 gap-2 ">
                     <MappingModule
                       mappingStatus={mappingStatus}
                       setmappingStatus={setmappingStatus}
@@ -1213,17 +1215,18 @@ function MappingPage({
                       setscanningstatus={setscanningStatus}
                       mappingStatus={mappingStatus}
                     />
-                    <button
-                      className="btn btn-neutral"
+                  </div>
+                  <button
+                      className="btn btn-neutral btn-block"
                       onClick={() => {
                         navigate("/");
                       }}
                     >
                       {"BACK TO NORMAL MODE"}
                     </button>
-                  </div>
                 </div>
               </div>
+              <LightController lightIntensityPub={lightIntensityPub} />
               <div className="card bg-base-100 shadow-xl mt-4 me-4">
                 {swapCameraStatus ? (
                   <div className="card-body">
@@ -1282,12 +1285,14 @@ function MappingPage({
           </div>
         </div>
         <div className="row-span-1">
-        <OdometerPanel
+        <div className="absolute bottom-10 w-fit" style={{left:"40%"}}>
+          <OdometerPanel
             setConnected={setConnected}
             odometerValue={odometerValue}
             airSpeedValue={airSpeedValue}
             odometerResetPub={odometerResetPub}
           />
+          </div>
         </div>
         {showJoystick && (
           <>

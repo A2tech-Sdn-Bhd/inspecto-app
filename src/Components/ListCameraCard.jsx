@@ -13,7 +13,7 @@ const ListCameraCard = ({ setCam, setShowPtzCtrl }) => {
                 setCam(1);
               }}
             >
-              {"Cam 1 (1)"}
+              {"Cam 1"}
             </button>
             <button
               className="btn btn-neutral btn-md"
@@ -21,7 +21,7 @@ const ListCameraCard = ({ setCam, setShowPtzCtrl }) => {
                 setCam(2);
               }}
             >
-              {"Cam 2 (2)"}
+              {"Cam 2"}
             </button>
             <button
               className="btn btn-neutral btn-md"
@@ -29,7 +29,7 @@ const ListCameraCard = ({ setCam, setShowPtzCtrl }) => {
                 setCam(3);
               }}
             >
-              {"Cam 3 (3)"}
+              {"Cam 3"}
             </button>
           </div>
         </div>

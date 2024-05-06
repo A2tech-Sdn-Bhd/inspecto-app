@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import * as ROSLIB from "roslib";
 import { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-const CleaningModule = ({brushArmPub, brushSpin }) => {
+const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
   const [brushStatus, setBrushStatus] = useState(false);
+  const [motorSpeedValue, setMotorSpeedValue] = useState(0);
   const navigate = useNavigate();
 
   const handleBrushArm = (payload) => {
@@ -14,6 +14,12 @@ const CleaningModule = ({brushArmPub, brushSpin }) => {
   const handleBrushSpin = (payload) => {
     if (brushSpin.current) {
       brushSpin.current.publish({ data: payload });
+    }
+  };
+  const handleChange = (event) => {
+    setMotorSpeedValue(event.target.value);
+    if (motorSpeed.current) {
+      motorSpeed.current.publish({ data: event.target.value });
     }
   };
   useEffect(() => {
@@ -92,7 +98,16 @@ const CleaningModule = ({brushArmPub, brushSpin }) => {
               DOWN
             </button>
           </div>
-          <h3 className="text-center mt-1">Control Brush Motor</h3>
+          <h3 className="text-center mt-1">Control Brush Motor Speed</h3>
+          <input 
+            type="range" 
+            min={0} 
+            max="255" 
+            value={motorSpeedValue} 
+            onChange={handleChange} 
+            className="range" 
+          />
+          <h3 className="text-center mt-1">Brush Motor Status</h3>
           <div className="grid grid-cols-1 gap-2">
             {brushStatus ? (
               <button
