@@ -84,9 +84,9 @@ const NavBar = ({
           </div>
           <div className="flex h-full items-center">
             <div className="flex gap-1">
-              <h1 className="font-semibold text-2xl">Robot Temperature:</h1>
-              <h1 className="font-semibold text-2xl">{temperature}</h1>
-              <h1 className="font-semibold  text-2xl">°C</h1>
+              <h1 className="font-semibold text-2xl hidden">Robot Temperature:</h1>
+              <h1 className="font-semibold text-2xl hidden">{temperature}</h1>
+              <h1 className="font-semibold  text-2xl hidden">°C</h1>
             </div>
           </div>
         </div>

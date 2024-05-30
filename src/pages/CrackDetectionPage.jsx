@@ -495,8 +495,8 @@ function CrackDetectionPage({
       );
     };
 
+    // imageCrack.src = "http://192.168.88.246:8000/video_feed";
     imageCrack.src = "http://192.168.88.246/stream";
-
     timeoutId = setTimeout(() => {
       imageCrack.src = "";
     }, 5000);
@@ -526,7 +526,7 @@ function CrackDetectionPage({
       clearTimeout(timeoutId);
       imageCrack.src = "";
     };
-  }, [url]);
+  }, []);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -560,7 +560,7 @@ function CrackDetectionPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -573,7 +573,7 @@ function CrackDetectionPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowDown) {
@@ -614,7 +614,7 @@ function CrackDetectionPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -627,7 +627,7 @@ function CrackDetectionPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else {
@@ -654,7 +654,7 @@ function CrackDetectionPage({
             angular: {
               x: 0.0,
               y: 0.0,
-              z: maxAngular,
+              z: -maxAngular,
             },
           });
         } else if (arrowRight) {
@@ -667,7 +667,7 @@ function CrackDetectionPage({
             angular: {
               x: 0.0,
               y: 0.0,
-              z: -maxAngular,
+              z: maxAngular,
             },
           });
         }
@@ -725,22 +725,22 @@ function CrackDetectionPage({
           angular: {
             x: 0.0,
             y: 0.0,
-            z: getScaledValue(
-              -gamepads[0].axes[0],
-              -1,
-              1,
-              maxAngular,
-              -maxAngular
-            ),
+            z: -1 * (getScaledValue(
+            gamepads[0].axes[0],
+            -1,
+            1,
+            -maxAngular,
+            maxAngular)
+          )
           },
         });
         if (gamepads[0].axes[2] > 0.005 || gamepads[0].axes[2] < -0.005) {
-          joyTwist.angular.z = getScaledValue(
+          joyTwist.angular.z = (getScaledValue(
             gamepads[0].axes[2],
             -1,
             1,
-            maxAngular,
-            -maxAngular
+            -maxAngular,
+            maxAngular)
           );
         }
 
@@ -874,7 +874,7 @@ function CrackDetectionPage({
       angular: {
         x: 0.0,
         y: 0.0,
-        z: getScaledValue(evt.x, -1, 1, maxAngular, -maxAngular),
+        z: getScaledValue(evt.x, -1, 1, -maxAngular, maxAngular),
       },
     });
   };

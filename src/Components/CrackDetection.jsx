@@ -5,7 +5,8 @@ const API_URL_CB = import.meta.env.VITE_API_URL_CBOX;
 const CrackDetection = ({r}) => {
   const [detectionStatus, setDetectionStatus] = useState(false);
   useEffect(() => {
-    axios.get(API_URL_CB + "/get-status-detection").then((res) => {
+    // axios.get("http://192.168.88.246:8000/detection_status").then((res) => {
+      axios.get(API_URL_CB + "/get-status-detection").then((res) => {
       if (res.data.status == 0) {
         setDetectionStatus(false);
       } else if (res.data.status == 1) {
@@ -15,6 +16,7 @@ const CrackDetection = ({r}) => {
   }, []);
   const startDetection = () => {
     axios
+      // .get("http://192.168.88.246:8000/start_detection")
       .get(API_URL_CB + "/start-crack-detection")
       .then((res) => {
         setDetectionStatus(true);
@@ -25,6 +27,7 @@ const CrackDetection = ({r}) => {
   };
   const stopDetection = () => {
     axios
+      // .get("http://192.168.88.246:8000/stop_detection")
       .get(API_URL_CB + "/stop-crack-detection")
       .then((res) => {
         setDetectionStatus(false);

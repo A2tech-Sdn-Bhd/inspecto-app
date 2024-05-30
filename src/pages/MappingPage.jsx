@@ -606,7 +606,7 @@ function MappingPage({
       angular: {
         x: 0.0,
         y: 0.0,
-        z: getScaledValue(evt.x, -1, 1, maxAngular, -maxAngular),
+        z: getScaledValue(evt.x, -1, 1, -maxAngular, maxAngular),
       },
     });
   };
@@ -672,7 +672,7 @@ function MappingPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -685,7 +685,7 @@ function MappingPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowDown) {
@@ -726,7 +726,7 @@ function MappingPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -739,7 +739,7 @@ function MappingPage({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else {
@@ -766,7 +766,7 @@ function MappingPage({
             angular: {
               x: 0.0,
               y: 0.0,
-              z: maxAngular,
+              z: -maxAngular,
             },
           });
         } else if (arrowRight) {
@@ -779,7 +779,7 @@ function MappingPage({
             angular: {
               x: 0.0,
               y: 0.0,
-              z: -maxAngular,
+              z: maxAngular,
             },
           });
         }
@@ -836,22 +836,22 @@ function MappingPage({
           angular: {
             x: 0.0,
             y: 0.0,
-            z: getScaledValue(
-              -gamepads[0].axes[0],
-              -1,
-              1,
-              maxAngular,
-              -maxAngular
-            ),
+            z: -1 * (getScaledValue(
+            gamepads[0].axes[0],
+            -1,
+            1,
+            -maxAngular,
+            maxAngular)
+          )
           },
         });
         if (gamepads[0].axes[2] > 0.005 || gamepads[0].axes[2] < -0.005) {
-          joyTwist.angular.z = getScaledValue(
+          joyTwist.angular.z = (getScaledValue(
             gamepads[0].axes[2],
             -1,
             1,
-            maxAngular,
-            -maxAngular
+            -maxAngular,
+            maxAngular)
           );
         }
 

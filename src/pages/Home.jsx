@@ -107,10 +107,9 @@ function Home({
   const [geninput, setgeninput] = useState({
     n: "",
   });
-  const handlePtz =()=>{
+  const handlePtz = () => {
     console.log("ptz");
-
-  }
+  };
   const handleGeneratePDF = async (e) => {
     window.open("/generatepdf", "_blank");
     setgeninput({
@@ -557,7 +556,7 @@ function Home({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -570,7 +569,7 @@ function Home({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowDown) {
@@ -611,7 +610,7 @@ function Home({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -624,7 +623,7 @@ function Home({
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else {
@@ -651,7 +650,7 @@ function Home({
             angular: {
               x: 0.0,
               y: 0.0,
-              z: maxAngular,
+              z: -maxAngular,
             },
           });
         } else if (arrowRight) {
@@ -664,7 +663,7 @@ function Home({
             angular: {
               x: 0.0,
               y: 0.0,
-              z: -maxAngular,
+              z: maxAngular,
             },
           });
         }
@@ -704,6 +703,7 @@ function Home({
         arrowLeft ||
         arrowRight
       ) {
+        console.log(gamepads[0].axes);
         // console.log("move");
         move = true;
         // // console.log(gamepads[0].axes);
@@ -722,22 +722,23 @@ function Home({
           angular: {
             x: 0.0,
             y: 0.0,
-            z: getScaledValue(
-              -gamepads[0].axes[0],
-              -1,
-              1,
-              maxAngular,
-              -maxAngular
-            ),
+            z: -1 * (getScaledValue(
+            gamepads[0].axes[0],
+            -1,
+            1,
+            -maxAngular,
+            maxAngular)
+          )
           },
         });
+
         if (gamepads[0].axes[2] > 0.005 || gamepads[0].axes[2] < -0.005) {
-          joyTwist.angular.z = getScaledValue(
+          joyTwist.angular.z = (getScaledValue(
             gamepads[0].axes[2],
             -1,
             1,
-            maxAngular,
-            -maxAngular
+            -maxAngular,
+            maxAngular)
           );
         }
 
@@ -924,7 +925,7 @@ function Home({
       angular: {
         x: 0.0,
         y: 0.0,
-        z: getScaledValue(evt.x, -1, 1, maxAngular, -maxAngular),
+        z: getScaledValue(evt.x, -1, 1, -maxAngular, maxAngular),
       },
     });
   };
@@ -1018,7 +1019,7 @@ function Home({
     // // console.log(payload);
   };
 
-  const downloadImage = () => {
+    const downloadImage = () => {
     const date = new Date();
     let name = `${date.getFullYear()}${date.getMonth()}${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}.jpg`;
     // console.log(name);
@@ -1160,7 +1161,7 @@ function Home({
               <LightController lightIntensityPub={lightIntensityPub} />
             </div>
           </div>
-          <div className="absolute bottom-10 w-fit" style={{left:"40%"}}>
+          <div className="absolute bottom-10 w-fit" style={{ left: "40%" }}>
             <OdometerPanel
               setConnected={setConnected}
               odometerValue={odometerValue}
