@@ -118,7 +118,7 @@ const ListModuleCard = ({ setCam, setShowPtzCtrl, showAuto, setShowAuto }) => {
             )}
             {ptzModuleAccess ? (
               <button
-                className="btn btn-block btn-neutral btn-disabled"
+                className="btn btn-block btn-neutral"
                 onClick={() => {
                   navigate("/ptz");
                 }}

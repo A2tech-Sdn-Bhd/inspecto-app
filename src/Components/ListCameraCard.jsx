@@ -1,6 +1,6 @@
 import React from "react";
 
-const ListCameraCard = ({ setCam, setShowPtzCtrl }) => {
+const ListCameraCard = ({ setCam, showPtzButton }) => {
   return (
     <>
       <div className="card bg-base-100 shadow-xl mt-4 ms-4">
@@ -31,6 +31,17 @@ const ListCameraCard = ({ setCam, setShowPtzCtrl }) => {
             >
               {"Cam 3"}
             </button>
+
+            {showPtzButton ? (
+              <button
+              className="btn btn-neutral btn-md"
+              onClick={() => {
+                setCam(4);
+              }}
+            >
+              {"PTZ Cam"}
+            </button>
+            ):(<></>)}
           </div>
         </div>
       </div>
