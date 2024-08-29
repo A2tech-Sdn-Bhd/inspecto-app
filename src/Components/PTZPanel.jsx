@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import { useState, useEffect, useRef } from "react";
 import PtzControl from "./PtzControl";
 const API_URL_PTZ = import.meta.env.VITE_API_URL_PTZ;
@@ -9,58 +7,93 @@ const PTZPanel = ({}) => {
     parseFloat(localStorage.getItem("ptzSpeed")) || 0.5
   );
   const valueRef = useRef(value);
+  const ws = useRef(null);
+  const movementInterval = useRef(null);
+  const keysPressed = useRef(new Set());
 
   useEffect(() => {
     valueRef.current = value;
   }, [value]);
 
-  const handleKeyDown = (event) => {
-    if (event.repeat) return;
+  useEffect(() => {
+    // Establish WebSocket connection
+    ws.current = new WebSocket(API_URL_PTZ.replace(/^http/, "ws"));
 
-    const keyMap = {
-      KeyW: 1,
-      KeyS: 0,
-      KeyA: 3,
-      KeyD: 4,
-      KeyQ: 6,
-      KeyE: 7,
-      KeyZ: 5,
-      KeyX: 2,
-      KeyC: 8,
-      KeyR: 14,
-      KeyT: 13,
+    ws.current.onopen = () => {
+      console.log("WebSocket connection opened");
     };
 
-    const direction = keyMap[event.code];
-    if (direction !== undefined) {
+    ws.current.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    ws.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, []);
+
+  const getDirection = () => {
+    if (keysPressed.current.has("KeyW") && keysPressed.current.has("KeyA")) {
+      return 6;
+    } else if (keysPressed.current.has("KeyW") && keysPressed.current.has("KeyD")) {
+      return 7;
+    } else if (keysPressed.current.has("KeyS") && keysPressed.current.has("KeyD")) {
+      return 8;
+    } else if (keysPressed.current.has("KeyS") && keysPressed.current.has("KeyA")) {
+      return 5;
+    } else if (keysPressed.current.has("KeyW")) {
+      return 1;
+    } else if (keysPressed.current.has("KeyS")) {
+      return 2;
+    } else if (keysPressed.current.has("KeyA")) {
+      return 3;
+    } else if (keysPressed.current.has("KeyD")) {
+      return 4;
+    } else if (keysPressed.current.has("KeyX")) {
+      return 0; 
+    } else if (keysPressed.current.has("KeyQ")) {
+      return 14;
+    } else if (keysPressed.current.has("KeyE")) {
+      return 13;
+    }
+    return null;
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.repeat) return;
+    keysPressed.current.add(event.code);
+
+    const direction = getDirection();
+    if (direction !== null) {
       console.log(`start ${event.code.slice(3).toLowerCase()}`);
-      direction == 0 ? setHome() : startMovement(direction);
+      if (direction === 0) {
+        setHome();
+      } else {
+        startMovement(direction);
+      }
     }
   };
 
   const handleKeyUp = (event) => {
-    const keyMap = {
-      KeyW: 1,
-      KeyS: 0,
-      KeyA: 3,
-      KeyD: 4,
-      KeyQ: 6,
-      KeyE: 7,
-      KeyZ: 5,
-      KeyX: 2,
-      KeyC: 8,
-      KeyR: 14,
-      KeyT: 13,
-    };
+    keysPressed.current.delete(event.code);
 
-    if (keyMap[event.code] !== undefined) {
+    if (event.code === "KeyX") {
+      // Do nothing for KeyQ on keyup
+      return;
+    }
+
+    const direction = getDirection();
+    if (direction !== null) {
       console.log("stop movement");
-      if(keyMap[event.code] == 0){
-        setHome();
-      }else{
-        stopMovement();
-      
-      }
+      stopMovement();
+    } else {
+      stopMovement();
     }
   };
 
@@ -74,18 +107,14 @@ const PTZPanel = ({}) => {
     };
   }, []);
 
-  const makeRequest = (x, y, z) => {
-    axios
-      .get(API_URL_PTZ + `/ptz?x=${x}&y=${y}&z=${z}`)
-      .then((response) => {
-        // Handle successful response
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const sendWebSocketMessage = (message) => {
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify(message));
+    } else {
+      console.error("WebSocket connection is not open");
+    }
   };
 
-  let timeoutId = null;
   const startMovement = (direction) => {
     const movementMap = {
       1: [0, 1, 0],
@@ -102,18 +131,20 @@ const PTZPanel = ({}) => {
     const [x, y, z] = movementMap[direction].map(
       (coord) => coord * valueRef.current
     );
-    makeRequest(x, y, z);
-    timeoutId = setInterval(() => makeRequest(x, y, z), 100);
+    sendWebSocketMessage({ action: 'ptzMove', x, y, z, timeout: 60 });
+    clearInterval(movementInterval.current);  // Clear any existing interval
+    movementInterval.current = setInterval(() => {
+      sendWebSocketMessage({ action: 'ptzMove', x, y, z, timeout: 60 });
+    }, 100);
   };
 
   const stopMovement = () => {
-    clearInterval(timeoutId);
-    makeRequest(0, 0, 0);
-    axios.get(API_URL_PTZ + "/ptz/stop").catch(console.error);
+    clearInterval(movementInterval.current);
+    sendWebSocketMessage({ action: 'ptzStop' });
   };
 
   const setHome = () => {
-    axios.get(API_URL_PTZ + "/ptz/setHome").catch(console.error);
+    sendWebSocketMessage({ action: 'setHome' });
   };
 
   const handleChange = (event) => {
@@ -124,8 +155,9 @@ const PTZPanel = ({}) => {
 
   return (
     <div className="me-4 mt-4">
-      <PtzControl stopMovement={stopMovement} startMovement={startMovement} setHome={setHome} value={value} handleChange={handleChange}/>
+      <PtzControl stopMovement={stopMovement} startMovement={startMovement} setHome={setHome} value={value} handleChange={handleChange} />
     </div>
   );
 };
+
 export default PTZPanel;

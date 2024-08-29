@@ -1,17 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import {
-  FiArrowUpRight,
   FiArrowDown,
-  FiArrowDownLeft,
-  FiArrowDownRight,
   FiArrowLeft,
   FiArrowRight,
   FiArrowUp,
-  FiArrowUpLeft,
   FiZoomIn,
   FiZoomOut,
 } from "react-icons/fi";
 import { GoHomeFill } from "react-icons/go";
+
 const PtzControl = ({
   stopMovement,
   startMovement,
@@ -20,110 +17,76 @@ const PtzControl = ({
   handleChange,
 }) => {
   const navigate = useNavigate();
+
   return (
     <>
       <div className="card card-compact bg-white">
         <div className="text-lg font-bold text-center mt-4">PTZ Control</div>
         <div className="card-body">
           <div className="flex flex-col gap-2">
-            <div className="grid grid-cols-3 gap-2">
-              <div className="tooltip tooltip-top" data-tip="Q">
-                <button
-                  className="btn btn-primary"
-                  onMouseDown={() => startMovement(6)}
-                  onMouseUp={stopMovement}
-                >
-                  <FiArrowUpLeft size={25} className="text-base-100" />
-                </button>
-              </div>
+            <div className="col-span-3 items-center justify-center flex">
               <div className="tooltip" data-tip="W">
                 <button
                   className="btn btn-primary"
                   onMouseDown={() => startMovement(1)}
-                  onMouseUp={stopMovement}
+                  onMouseUp={() => stopMovement()}
                 >
                   <FiArrowUp size={25} className="text-base-100" />
                 </button>
               </div>
-              <div className="tooltip tooltip-top" data-tip="E">
-                <button
-                  className="btn btn-primary"
-                  onMouseDown={() => startMovement(7)}
-                  onMouseUp={stopMovement}
-                >
-                  <FiArrowUpRight size={25} className="text-base-100" />
-                </button>
-              </div>
-              <div className="tooltip tooltip-left" data-tip="A">
+            </div>
+            <div className="flex flex-row gap-2 justify-center">
+              <div
+                className="tooltip tooltip-left flex justify-end"
+                data-tip="A"
+              >
                 <button
                   className="btn btn-primary"
                   onMouseDown={() => startMovement(3)}
-                  onMouseUp={stopMovement}
+                  onMouseUp={() => stopMovement()}
                 >
                   <FiArrowLeft size={25} className="text-base-100" />
                 </button>
               </div>
-              <div className="tooltip" data-tip="S">
+              <div className="tooltip tooltip-bottom" data-tip="S">
                 <button
                   className="btn btn-primary"
-                  onMouseDown={() => setHome()}
+                  onMouseDown={() => startMovement(2)}
+                  onMouseUp={() => stopMovement()}
                 >
-                  <GoHomeFill size={25} className="text-base-100" />
+                  <FiArrowDown size={25} className="text-base-100" />
                 </button>
               </div>
               <div className="tooltip tooltip-right" data-tip="D">
                 <button
                   className="btn btn-primary"
                   onMouseDown={() => startMovement(4)}
-                  onMouseUp={stopMovement}
+                  onMouseUp={() => stopMovement()}
                 >
                   <FiArrowRight size={25} className="text-base-100" />
                 </button>
               </div>
-              <div className="tooltip tooltip-left" data-tip="Z">
-                <button
-                  className="btn btn-primary"
-                  onMouseDown={() => startMovement(5)}
-                  onMouseUp={stopMovement}
-                >
-                  <FiArrowDownLeft size={25} className="text-base-100" />
-                </button>
-              </div>
-              <div className="tooltip tooltip-bottom" data-tip="X">
-                <button
-                  className="btn btn-primary"
-                  onMouseDown={() => startMovement(2)}
-                  onMouseUp={stopMovement}
-                >
-                  <FiArrowDown size={25} className="text-base-100" />
-                </button>
-              </div>
-              <div className="tooltip tooltip-right" data-tip="C">
-                <button
-                  className="btn btn-primary"
-                  onMouseDown={() => startMovement(8)}
-                  onMouseUp={stopMovement}
-                >
-                  <FiArrowDownRight size={25} className="text-base-100" />
-                </button>
-              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="tooltip tooltip-left" data-tip="R">
+            <div className="flex flex-row justify-center gap-2">
+              <div className="tooltip tooltip-left" data-tip="Q">
                 <button
                   className="btn btn-primary"
                   onMouseDown={() => startMovement(14)}
-                  onMouseUp={stopMovement}
+                  onMouseUp={() => stopMovement()}
                 >
                   <FiZoomOut size={25} className="text-base-100" />
                 </button>
               </div>
-              <div className="font-bold text-2xl text-center no-underline"></div>
-              <div className="tooltip tooltip-right" data-tip="T">
+              <div className="tooltip" data-tip="X">
+                <button className="btn btn-primary" onClick={() => setHome()}>
+                  <GoHomeFill size={25} className="text-base-100" />
+                </button>
+              </div>
+              <div className="tooltip tooltip-right" data-tip="E">
                 <button
                   className="btn btn-primary"
                   onMouseDown={() => startMovement(13)}
-                  onMouseUp={stopMovement}
+                  onMouseUp={() => stopMovement()}
                 >
                   <FiZoomIn size={25} className="text-base-100" />
                 </button>
