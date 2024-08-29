@@ -22,11 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-tags
-
-inspecto@192.168.88.2
-inspecto@192.168.88.L
-
-.env
-dist.zip
-package-lock.json
