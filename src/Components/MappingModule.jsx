@@ -13,7 +13,7 @@ const MappingModule = ({mappingStatus, setmappingStatus, scanningstatus}) => {
         setmappingStatus(true);
       }
     });
-    axios.get("http://192.168.88.2:8888/getMappingStatus").then((res) => {
+    axios.get("http://localhost:5055/getMappingStatus").then((res) => {
       if (res.data.status == false) {
         setmappingStatus(false);
       } else if (res.data.status == true) {
@@ -24,7 +24,7 @@ const MappingModule = ({mappingStatus, setmappingStatus, scanningstatus}) => {
   }, []);
   const startMapping = () => {
     axios
-      .get("http://192.168.88.2:8888/startMapping")
+      .get("http://localhost:5055/startMapping")
       .then((res) => {
         return axios.get(API_URL_CB + "/start-mapping"); 
       })
@@ -37,7 +37,7 @@ const MappingModule = ({mappingStatus, setmappingStatus, scanningstatus}) => {
   };
   const stopMapping = () => {
     axios
-      .get("http://192.168.88.2:8888/stopMapping")
+      .get("http://localhost:5055/stopMapping")
       .then((res) => {
         
       })

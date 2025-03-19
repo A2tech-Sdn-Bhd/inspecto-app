@@ -3,7 +3,7 @@ import axios from "axios";
 import { useEffect } from "react";
 const ScanningModule = ({scanningstatus, setscanningstatus, mappingStatus}) => {
   useEffect(() => {
-    axios.get("http://192.168.88.2:8888/getScanningStatus").then((res) => {
+    axios.get("http://localhost:5055/getScanningStatus").then((res) => {
       console.log( res.data.status);
       if (res.data.status == true) {
         setscanningstatus(true);
@@ -14,7 +14,7 @@ const ScanningModule = ({scanningstatus, setscanningstatus, mappingStatus}) => {
   }, []);
   const startScanning = () => {
     axios
-      .get("http://192.168.88.2:8888/startScanning")
+      .get("http://localhost:5055/startScanning")
       .then((res) => {
         setscanningstatus(true);
       })
@@ -23,7 +23,7 @@ const ScanningModule = ({scanningstatus, setscanningstatus, mappingStatus}) => {
   };
   const stopScanning = () => {
     axios
-      .get("http://192.168.88.2:8888/stopScanning")
+      .get("http://localhost:5055/stopScanning")
       .then((res) => {
         setscanningstatus(false);
       })
