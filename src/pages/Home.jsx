@@ -442,6 +442,29 @@ function Home({
 
   const image = new Image();
   image.crossOrigin = "anonymous";
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      setIsCanvasReady(true);
+      console.log("✅ Canvas is ready:", canvasRef.current);
+    } else {
+      console.warn("⚠️ Canvas is still null!");
+    }
+  }, []);
+  image.onerror = () => {
+    clearTimeout(timeoutId);
+
+    if (!isCanvasReady || !canvasRef.current) {
+      console.error("❌ Canvas is still not ready. Skipping error handling.");
+      return;
+    }
+
+    const context = canvasRef.current.getContext("2d");
+    context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    context.fillStyle = "black";
+    context.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  };
 
   useEffect(() => {
     if (cam === 4) {
@@ -463,14 +486,31 @@ function Home({
 
     image.onerror = () => {
       clearTimeout(timeoutId);
-      context.clearRect(
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height
-      );
-      context.fillStyle = "black";
-      context.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+      setTimeout(() => {
+        console.log("canvasRef:", canvasRef);
+        console.log("canvasRef.current:", canvasRef.current);
+
+        if (!canvasRef.current) {
+          console.error("❌ Canvas reference is still null! Waiting...");
+          return;
+        }
+
+        const context = canvasRef.current.getContext("2d");
+        context.clearRect(
+          0,
+          0,
+          canvasRef.current.width,
+          canvasRef.current.height
+        );
+        context.fillStyle = "black";
+        context.fillRect(
+          0,
+          0,
+          canvasRef.current.width,
+          canvasRef.current.height
+        );
+      }, 100); // Wait 100ms before accessing canvasRef
     };
 
     image.src = url;
@@ -722,23 +762,25 @@ function Home({
           angular: {
             x: 0.0,
             y: 0.0,
-            z: -1 * (getScaledValue(
-            gamepads[0].axes[0],
-            -1,
-            1,
-            -maxAngular,
-            maxAngular)
-          )
+            z:
+              -1 *
+              getScaledValue(
+                gamepads[0].axes[0],
+                -1,
+                1,
+                -maxAngular,
+                maxAngular
+              ),
           },
         });
 
         if (gamepads[0].axes[2] > 0.005 || gamepads[0].axes[2] < -0.005) {
-          joyTwist.angular.z = (getScaledValue(
+          joyTwist.angular.z = getScaledValue(
             gamepads[0].axes[2],
             -1,
             1,
             -maxAngular,
-            maxAngular)
+            maxAngular
           );
         }
 
@@ -1019,7 +1061,7 @@ function Home({
     // // console.log(payload);
   };
 
-    const downloadImage = () => {
+  const downloadImage = () => {
     const date = new Date();
     let name = `${date.getFullYear()}${date.getMonth()}${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}.jpg`;
     // console.log(name);
@@ -1053,6 +1095,38 @@ function Home({
       localStorage.setItem(`imgSnapshot_${tripID}`, JSON.stringify(imgdata));
       // console.log("imgsnapshot key does not exist.");
     }
+  };
+
+  const resizeCanvas = () => {
+    const canvas = canvasRef.current;
+    const aspectRatio = 16 / 10;
+    // const wrapper = canvas.parentElement;
+    const wrapperWidth = wrapper.offsetWidth;
+    const wrapperHeight = wrapper.offsetHeight;
+    const wrapper = canvasRef.current?.parentElement;
+    console.log("Parent width:", wrapper?.offsetWidth);
+    console.log("Parent height:", wrapper?.offsetHeight);
+
+    if (wrapperHeight / wrapperWidth > aspectRatio) {
+      canvas.height = wrapperHeight;
+      canvas.width = wrapperHeight * aspectRatio;
+    } else {
+      canvas.width = wrapperWidth;
+      canvas.height = wrapperWidth / aspectRatio;
+    }
+
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Optionally redraw content here
+    ctx.fillStyle = "gray";
+    ctx.fillRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+    useEffect(() => {
+      resizeCanvas();
+      console.log("Home component mounted!");
+      window.eventListener("resize", resizeCanvas);
+      return () => window.removeEventListener("resize", resizeCanvas);
+    }, []);
   };
 
   return (
@@ -1136,19 +1210,24 @@ function Home({
             </div>
             <div className="col-span-8 items-center justify-center">
               <div
+                className="w-full h-full"
                 style={{
                   position: "relative",
                   width: "100%",
+                  height: "100%",
                 }}
               >
                 {/* Canvas for 2D context */}
                 {/* nanti bukak */}
                 <canvas
-                  className={` ${cam === 4 ? "hidden" : ""}`}
+                  className={`bg-white w-full h-full ${
+                    cam === 4 ? "hidden" : ""
+                  }`}
                   ref={canvasRef}
                   width={1274}
                   height={670}
                 ></canvas>
+                {console.log("Rendering canvas")}
               </div>
             </div>
             <div className="col-span-2 flex flex-col justify-center">
@@ -1334,14 +1413,74 @@ function Home({
                         alignItems: "center",
                       }}
                     >
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>▲</kbd>
-                      </div>
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>◄</kbd>
-                        <kbd>▼</kbd>
-                        <kbd>►</kbd>
-                      </div>
+                      <svg
+                        width="150"
+                        height="100"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {/* Circular center */}
+                        <circle cx="75" cy="60" r="35" fill="black" />
+
+                        {/* Label */}
+                        <text
+                          x="75"
+                          y="15"
+                          font-size="16"
+                          text-anchor="middle"
+                          fill="black"
+                          font-family="Arial"
+                        >
+                          L-Joystick
+                        </text>
+
+                        {/* Up button */}
+                        <text
+                          x="75"
+                          y="45"
+                          font-size="24"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          ↑
+                        </text>
+
+                        {/* Left button */}
+                        <text
+                          x="55"
+                          y="65"
+                          font-size="22"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          ←
+                        </text>
+
+                        {/* Right button */}
+                        <text
+                          x="95"
+                          y="65"
+                          font-size="22"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          →
+                        </text>
+
+                        {/* Down button */}
+                        <text
+                          x="75"
+                          y="85"
+                          font-size="24"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          ↓
+                        </text>
+                      </svg>
                     </td>
                     <td>ROBOT MOVEMENT</td>
                   </tr>
@@ -1353,33 +1492,204 @@ function Home({
                         alignItems: "center",
                       }}
                     >
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>W</kbd>
-                      </div>
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>A</kbd>
-                        <kbd>S</kbd>
-                        <kbd>D</kbd>
-                      </div>
+                      <svg
+                        width="150"
+                        height="130"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <text
+                          x="75"
+                          y="20"
+                          font-size="16"
+                          text-anchor="middle"
+                          fill="black"
+                          font-family="Arial"
+                        >
+                          D-Pad
+                        </text>
+                        {/* Up button */}
+                        <rect
+                          x="55"
+                          y="35"
+                          width="40"
+                          height="40"
+                          rx="8"
+                          ry="8"
+                          fill="black"
+                        />
+                        <text
+                          x="75"
+                          y="55"
+                          font-size="20"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          ↑
+                        </text>
+
+                        {/* Left button */}
+                        <rect
+                          x="35"
+                          y="55"
+                          width="40"
+                          height="40"
+                          rx="8"
+                          ry="8"
+                          fill="black"
+                        />
+                        <text
+                          x="50"
+                          y="80"
+                          font-size="20"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          ←
+                        </text>
+
+                        {/* Right button */}
+                        <rect
+                          x="75"
+                          y="55"
+                          width="40"
+                          height="40"
+                          rx="8"
+                          ry="8"
+                          fill="black"
+                        />
+                        <text
+                          x="100"
+                          y="80"
+                          font-size="20"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          →
+                        </text>
+
+                        {/* Down button */}
+                        <rect
+                          x="55"
+                          y="75"
+                          width="40"
+                          height="40"
+                          rx="8"
+                          ry="8"
+                          fill="black"
+                        />
+                        <text
+                          x="75"
+                          y="100"
+                          font-size="20"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          ↓
+                        </text>
+                      </svg>
                     </td>
                     <td>PAN TILT CAMERA</td>
                   </tr>
                   <tr>
-                    <td>
-                      <kbd>Q</kbd>
+                    <td
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <svg
+                        width="100"
+                        height="100"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {/* A button */}
+                        <circle cx="50" cy="50" r="20" fill="black" />
+                        <text
+                          x="50"
+                          y="55"
+                          font-size="14"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          A
+                        </text>
+                      </svg>
                     </td>
                     <td>BRUSH: ON/OFF</td>
                   </tr>
                   <tr>
-                    <td>
-                      <kbd>F</kbd>
-                      <kbd>V</kbd>
+                    <td
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <svg
+                        width="150"
+                        height="150"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {/* X button */}
+                        <circle cx="45" cy="75" r="20" fill="black" />
+                        <text
+                          x="45"
+                          y="80"
+                          font-size="14"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          X
+                        </text>
+                        {/* B button */}
+                        <circle cx="105" cy="75" r="20" fill="black" />
+                        <text
+                          x="105"
+                          y="80"
+                          font-size="14"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          B
+                        </text>
+                      </svg>
                     </td>
                     <td>BRUSH: UP/DOWN</td>
                   </tr>
                   <tr>
-                    <td>
-                      <kbd>Shift + R</kbd>
+                    <td
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <svg
+                        width="150"
+                        height="120"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        {/* Y button */}
+                        <circle cx="75" cy="60" r="20" fill="black" />
+                        <text
+                          x="75"
+                          y="65"
+                          font-size="14"
+                          text-anchor="middle"
+                          fill="white"
+                          font-family="Arial"
+                        >
+                          Y
+                        </text>
+                      </svg>
                     </td>
                     <td>RESET ODOMETER</td>
                   </tr>
