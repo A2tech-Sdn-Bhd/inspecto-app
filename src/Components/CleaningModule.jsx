@@ -1,185 +1,247 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as ROSLIB from "roslib";
-import { useRef, useEffect } from "react";
+
 const CleaningModule = ({ connected, setConnected }) => {
-  const brushArmPub = useRef(null);
-  const brushSpin = useRef(null);
-  const [brushStatus, setBrushStatus] = useState(false);
+  const brushForward = useRef(null);
+  const brushReverse = useRef(null);
+  const armUp = useRef(null);
+  const armDown = useRef(null);
+  const brushSpeed = useRef(null);
+  const [brushStatus, setBrushStatus] = useState(() => {
+    const saved = localStorage.getItem("brushStatus");
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [rotationDirection, setRotationDirection] = useState(() => {
+    const saved = localStorage.getItem("rotationDirection");
+    return saved ? JSON.parse(saved) : "forward";
+  });
+  const [speedValue, setSpeedValue] = useState(() => {
+    const saved = localStorage.getItem("speedValue");
+    return saved ? parseFloat(JSON.parse(saved)) : 0.1;
+  });
   const ros = useRef(null);
+
   useEffect(() => {
     if (!connected) {
       return;
     }
-
-    if (brushArmPub) {
-      brushArmPub.current = new ROSLIB.Topic({
-        ros: ros.current,
-        name: "/brush/up_down",
-        messageType: "std_msgs/String",
-      });
+    if (!ros.current) {
+      return;
     }
-    // publisher for on/off brush
-    if (brushSpin) {
-      brushSpin.current = new ROSLIB.Topic({
-        ros: ros.current,
-        name: "/brush/spin",
-        messageType: "std_msgs/Bool",
-      });
-    }
+    brushForward.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/brush/forward",
+      messageType: "std_msgs/Bool",
+    });
+    brushReverse.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/brush/reverse",
+      messageType: "std_msgs/Bool",
+    });
+    brushSpeed.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/brush/speed",
+      messageType: "std_msgs/Float32",
+    });
+    armUp.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/actuator/up",
+      messageType: "std_msgs/Bool",
+    });
+    armDown.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/actuator/down",
+      messageType: "std_msgs/Bool",
+    });
   }, [connected]);
-  const handleBrushArm = (payload) => {
-    if (brushArmPub.current) {
-      brushArmPub.current.publish({ data: payload });
-    }
-  };
-  const handleBrushSpin = (payload) => {
-    if (brushSpin.current) {
-      brushSpin.current.publish({ data: payload });
-    }
-  };
+
   useEffect(() => {
     if (ros.current) {
       return;
     }
     ros.current = new ROSLIB.Ros({ url: "ws://192.168.88.2:8080" });
-    ros.current.on("error", function (error) {
+    ros.current.on("error", () => {
       setConnected(false);
     });
-    ros.current.on("connection", function () {
+    ros.current.on("connection", () => {
       setConnected(true);
     });
-  }, []);
+  }, [setConnected]);
+
+  useEffect(() => {
+    localStorage.setItem("brushStatus", JSON.stringify(brushStatus));
+  }, [brushStatus]);
+
+  useEffect(() => {
+    localStorage.setItem("rotationDirection", JSON.stringify(rotationDirection));
+  }, [rotationDirection]);
+
+  useEffect(() => {
+    localStorage.setItem("speedValue", JSON.stringify(speedValue));
+  }, [speedValue]);
+
+  const handleBrushArmUp = (payload) => {
+    if (armUp.current) {
+      armUp.current.publish(new ROSLIB.Message({ data: payload }));
+    }
+  };
+
+  const handleBrushArmDown = (payload) => {
+    if (armDown.current) {
+      armDown.current.publish(new ROSLIB.Message({ data: payload }));
+    }
+  };
+
+  const handleBrushSpin = (start) => {
+    if (start) {
+      if (rotationDirection === "forward" && brushForward.current) {
+        brushForward.current.publish(new ROSLIB.Message({ data: true }));
+        brushReverse.current.publish(new ROSLIB.Message({ data: false }));
+      } else if (rotationDirection === "reverse" && brushReverse.current) {
+        brushReverse.current.publish(new ROSLIB.Message({ data: true }));
+        brushForward.current.publish(new ROSLIB.Message({ data: false }));
+      }
+      if (brushSpeed.current) {
+        brushSpeed.current.publish(new ROSLIB.Message({ data: speedValue }));
+      }
+    } else {
+      if (brushForward.current) {
+        brushForward.current.publish(new ROSLIB.Message({ data: false }));
+      }
+      if (brushReverse.current) {
+        brushReverse.current.publish(new ROSLIB.Message({ data: false }));
+      }
+      if (brushSpeed.current) {
+        brushSpeed.current.publish(new ROSLIB.Message({ data: 0.0 }));
+      }
+    }
+  };
+
+  const handleSpeedChange = (e) => {
+    const value = parseFloat(e.target.value) / 100;
+    const scaledValue = 0.1 + value * (1.0 - 0.1);
+    setSpeedValue(scaledValue);
+    if (brushStatus && brushSpeed.current) {
+      brushSpeed.current.publish(new ROSLIB.Message({ data: scaledValue }));
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
-        return; // Do nothing if an input element has focus
+        return;
       }
       if (evt.code === "KeyF") {
-        handleBrushArm("up");
+        handleBrushArmUp(true);
       } else if (evt.code === "KeyV") {
-        handleBrushArm("down");
+        handleBrushArmDown(true);
       } else if (evt.code === "KeyQ") {
-        if (brushStatus) {
-          handleBrushSpin(false);
-          setBrushStatus(false);
-        } else {
-          handleBrushSpin(true);
-          setBrushStatus(true);
-        }
+        handleBrushSpin(!brushStatus);
+        setBrushStatus(!brushStatus);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup function to remove the event listener when the component unmounts
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [brushStatus, handleBrushArm, handleBrushSpin, setBrushStatus]); // Add any dependencies here
+  }, [brushStatus]);
 
   useEffect(() => {
     const handleKeyUp = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
-        return; // Do nothing if an input element has focus
+        return;
       }
-      if (evt.code === "KeyF" || evt.code === "KeyV") {
-        handleBrushArm("stop");
+      if (evt.code === "KeyF") {
+        handleBrushArmUp(false);
+      } else if (evt.code === "KeyV") {
+        handleBrushArmDown(false);
       }
     };
 
     window.addEventListener("keyup", handleKeyUp);
-
-    // Cleanup function to remove the event listener when the component unmounts
     return () => {
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [handleBrushArm]); // Add any dependencies here
+  }, []);
 
   return (
-      <div className="card bg-base-100 me-4">
-        <div className="card-body">
-          <h2 className="card-title justify-center">Brush Controller</h2>
-          <h3 className="text-center mt-1">Control Brush Angle</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              className="btn btn-neutral"
-              onMouseDown={() => {
-                handleBrushArm("up");
-              }}
-              onMouseUp={() => {
-                handleBrushArm("stop");
-              }}
-            >
-              UP
-            </button>
-            <button
-              className="btn btn-neutral"
-              onMouseDown={() => {
-                handleBrushArm("down");
-              }}
-              onMouseUp={() => {
-                handleBrushArm("stop");
-              }}
-            >
-              DOWN
-            </button>
-          </div>
-          <h3 className="text-center mt-1">Control Brush Speed</h3>
-          <input
-            type="range"
-            min={0}
-            max="100"
-            value="25"
-            className="range"
-            step="25"
-          />
-          <div className="w-full flex justify-between text-xs px-2">
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-            <span>|</span>
-          </div>
-          <div className="w-full flex justify-between text-xs px-2">
-            <span>0</span>
-            <span>1</span>
-          </div>
-          <h3 className="text-center mt-1">Control Brush Rotation</h3>
-          <div className="tabs tabs-boxed w-fit">
-            <a className="tab">Forward</a>
-            <a className="tab tab-active">Reverse</a>
-          </div>
-          <h3 className="text-center mt-1">Control Brush Motor</h3>
-          <div className="grid grid-cols-1 gap-2">
-            {brushStatus ? (
-              <button
-                className="btn btn-error btn-block"
-                onClick={() => {
-                  handleBrushSpin(false);
-                  setBrushStatus(!brushStatus);
-                }}
-              >
-                STOP BRUSH
-              </button>
-            ) : (
-              <button
-                className="btn btn-primary btn-block"
-                onClick={() => {
-                  handleBrushSpin(true);
-                  setBrushStatus(!brushStatus);
-                }}
-              >
-                START BRUSH
-              </button>
-            )}
+    <div className="card bg-base-100 me-4">
+      <div className="card-body">
+        <h2 className="card-title justify-center">Brush Controller</h2>
+        <h3 className="text-center mt-1">Control Brush Angle</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            className="btn btn-neutral"
+            onMouseDown={() => handleBrushArmUp(true)}
+            onMouseUp={() => handleBrushArmUp(false)}
+          >
+            UP
+          </button>
+          <button
+            className="btn btn-neutral"
+            onMouseDown={() => handleBrushArmDown(true)}
+            onMouseUp={() => handleBrushArmDown(false)}
+          >
+            DOWN
+          </button>
+        </div>
+        <h3 className="text-center mt-1">Control Brush Speed</h3>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={(speedValue - 0.1) * (100 / (1.0 - 0.1))}
+          className="range"
+          onChange={handleSpeedChange}
+        />
+        <div className="w-full flex justify-between text-xs px-2">
+          <span>0.1</span>
+          <span>1.0</span>
+        </div>
+        <h3 className="text-center mt-1">Control Brush Rotation</h3>
+        <div className="w-full flex justify-center items-center">
+          <div className="tabs tabs-boxed  w-fit flex justify-center items-center">
+          <a
+            className={`tab ${rotationDirection === "forward" ? "tab-active" : ""}`}
+            onClick={() => setRotationDirection("forward")}
+          >
+            Forward
+          </a>
+          <a
+            className={`tab ${rotationDirection === "reverse" ? "tab-active" : ""}`}
+            onClick={() => setRotationDirection("reverse")}
+          >
+            Reverse
+          </a>
           </div>
         </div>
+        <h3 className="text-center mt-1">Control Brush Motor</h3>
+        <div className="grid grid-cols-1 gap-2">
+          {brushStatus ? (
+            <button
+              className="btn btn-error btn-block"
+              onClick={() => {
+                handleBrushSpin(false);
+                setBrushStatus(false);
+              }}
+            >
+              STOP BRUSH
+            </button>
+          ) : (
+            <button
+              className="btn btn-primary btn-block"
+              onClick={() => {
+                handleBrushSpin(true);
+                setBrushStatus(true);
+              }}
+            >
+              START BRUSH
+            </button>
+          )}
+        </div>
       </div>
+    </div>
   );
 };
 

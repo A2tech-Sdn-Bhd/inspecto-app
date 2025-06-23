@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import LEDController from "../Components/LEDController";
+import VideoStreamPanel from "../Components/VideoStreamPanel";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import axios from "axios";
@@ -11,11 +13,11 @@ import { Button, Modal } from "react-daisyui";
 import { GoAlert } from "react-icons/go";
 import "../App.css";
 import CleaningModule from "../Components/CleaningModule";
-import GeneratePDFButton from "../Components/GeneratePDFButton";
 import ReportForm from "../Components/ReportForm";
 import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanel from "../Components/OdometerPanel";
 import NavBar from "../Components/NavBar";
+import MediaPanel from "../Components/MediaPanel";
 const getBase64Image = (img) => {
   var canvas = document.createElement("canvas");
   canvas.width = img.width;
@@ -93,6 +95,8 @@ function Home() {
   const moveDistancePub = useRef(null);
   const odomSub = useRef(null);
   const resetOdomPub = useRef(null);
+  const ledControlFrontPub = useRef(null);
+  const ledControlBackPub = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
@@ -936,6 +940,16 @@ function Home() {
       // // console.log(msg);
       setAirSpeedValue(msg.pose.pose.position.x);
     });
+    ledControlFrontPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/led/front",
+      messageType: "std_msgs/Float32",
+    });
+    ledControlBackPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/led/back",
+      messageType: "std_msgs/Float32",
+    });
   }, [connected]);
 
   useEffect(() => {
@@ -1147,102 +1161,28 @@ function Home() {
           <div className="grid grid-cols-12 gap-4 mt-10">
             <div className="col-span-2 flex flex-col justify-center">
               <ListCameraCard setCam={setCam} />
-              <div className="card bg-base-100 mt-4 ms-4">
-                <div className="card-body">
-                  <h2 className="card-title justify-center">
-                    Media Capture Menu
-                  </h2>
-                  <div className="mt-2 grid grid-row gap-2 ">
-                    <div className="grid grid-cols-2 gap-2">
-                    <button className="btn btn-neutral" onClick={downloadImage}>
-                      {"Snapshot"}
-                    </button>
-                    <Button
-                      color={isRecording ? "error" : "neutral"}
-                      onClick={() => {
-                        if (!isRecording) {
-                          setIsRecording(true);
-                          mediaRecorder.start();
-                        } else {
-                          setIsRecording(false);
-                          mediaRecorder.stop();<button
-                          className="btn btn-error btn-block"
-                          onClick={() => {
-                            handleBrushSpin(false);
-                            setBrushStatus(!brushStatus);
-                          }}
-                        >
-                          STOP BRUSH
-                        </button>
-                        }
-                      }}
-                    >
-                      {!isRecording && "Record"}
-                      {isRecording && "Stop"}
-                    </Button>
-                    </div>
-                    <GeneratePDFButton
-                      handleGeneratePDF={handleGeneratePDF}
-                      showBtnStartTrip={showBtnStartTrip}
-                      generateReportAccess={generateReportAccess}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="card bg-base-100 ms-4 mt-4">
-                <div className="card-body">
-                  <h2 className="card-title justify-center">LED Controller</h2>
+              <MediaPanel
+                isRecording={isRecording}
+                setIsRecording={setIsRecording}
+                showBtnStartTrip={showBtnStartTrip}
+                generateReportAccess={generateReportAccess}
+                canvasRef={canvasRef}
+                mediaRecorder={mediaRecorder}
+              />
+              <LEDController
+              connected={connected}
+                ledControlBackPub={ledControlBackPub}
+                ledControlFrontPub={ledControlFrontPub}
+              />
+            </div>
+            <VideoStreamPanel canvasRef={canvasRef} cam={cam} />
 
-                  <h3 className="text-center mt-1">Control LED light</h3>
-                  <input
-                    type="range"
-                    min={0}
-                    max="100"
-                    value="25"
-                    className="range"
-                    step="25"
-                  />
-                  <div className="w-full flex justify-between text-xs px-2">
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                  </div>
-                  <div className="w-full flex justify-between text-xs px-2">
-                    <span>0</span>
-                    <span>1</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-8 items-center justify-center">
-              <div
-                style={{
-                  position: "relative",
-                  width: "100%",
-                }}
-              >
-                {/* Canvas for 2D context */}
-                <canvas
-                  className={` ${cam === 4 ? "hidden" : ""}`}
-                  ref={canvasRef}
-                  width={1274}
-                  height={670}
-                ></canvas>
-              </div>
-            </div>
             <div className="col-span-2 flex flex-col justify-center">
               <CleaningModule
                 connected={connected}
                 setConnected={setConnected}
               />
-              
+
               {showJoystick && (
                 <>
                   <div className="card bg-base-100 me-4 mt-4">
