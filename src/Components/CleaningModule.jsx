@@ -95,13 +95,16 @@ const CleaningModule = ({ connected, setConnected }) => {
   const handleBrushSpin = (start) => {
     if (start) {
       if (rotationDirection === "forward" && brushForward.current) {
+        console.log("forward starting");
         brushForward.current.publish(new ROSLIB.Message({ data: true }));
         brushReverse.current.publish(new ROSLIB.Message({ data: false }));
       } else if (rotationDirection === "reverse" && brushReverse.current) {
+        console.log("reverse starting");
         brushReverse.current.publish(new ROSLIB.Message({ data: true }));
         brushForward.current.publish(new ROSLIB.Message({ data: false }));
       }
       if (brushSpeed.current) {
+        console.log("adjust brush speed");
         brushSpeed.current.publish(new ROSLIB.Message({ data: speedValue }));
       }
     } else {
@@ -199,23 +202,23 @@ const CleaningModule = ({ connected, setConnected }) => {
           <span>0.1</span>
           <span>1.0</span>
         </div>
-        <h3 className="text-center mt-1">Control Brush Rotation</h3>
+        {/* <h3 className="text-center mt-1">Control Brush Rotation</h3>
         <div className="w-full flex justify-center items-center">
-          <div className="tabs tabs-boxed  w-fit flex justify-center items-center">
-          <a
-            className={`tab ${rotationDirection === "forward" ? "tab-active" : ""}`}
-            onClick={() => setRotationDirection("forward")}
-          >
-            Forward
-          </a>
-          <a
-            className={`tab ${rotationDirection === "reverse" ? "tab-active" : ""}`}
-            onClick={() => setRotationDirection("reverse")}
-          >
-            Reverse
-          </a>
+          <div className="tabs tabs-boxed w-fit flex justify-center items-center">
+            <a
+              className={`tab ${rotationDirection === "forward" ? "tab-active" : ""}`}
+              onClick={() => setRotationDirection("forward")}
+            >
+              Forward
+            </a>
+            <a
+              className={`tab ${rotationDirection === "reverse" ? "tab-active" : ""}`}
+              onClick={() => setRotationDirection("reverse")}
+            >
+              Reverse
+            </a>
           </div>
-        </div>
+        </div> */}
         <h3 className="text-center mt-1">Control Brush Motor</h3>
         <div className="grid grid-cols-1 gap-2">
           {brushStatus ? (
