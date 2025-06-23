@@ -6,26 +6,28 @@ import Swal from "sweetalert2";
 import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
-import {
-  AiOutlineArrowUp,
-  AiOutlineArrowDown,
-  AiOutlineArrowLeft,
-  AiOutlineArrowRight,
-  AiOutlineZoomIn,
-  AiOutlineZoomOut,
-} from "react-icons/ai";
-import Draggable from "react-draggable";
 import { saveAs } from "file-saver";
 import { Button, Modal } from "react-daisyui";
 import { GoAlert } from "react-icons/go";
 import "../App.css";
+import CleaningModule from "../Components/CleaningModule";
 import GeneratePDFButton from "../Components/GeneratePDFButton";
 import ReportForm from "../Components/ReportForm";
-import ListModuleCard from "../Components/ListModuleCard";
 import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanel from "../Components/OdometerPanel";
 import NavBar from "../Components/NavBar";
-import LightController from "../Components/LightController";
+const getBase64Image = (img) => {
+  var canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+
+  var dataURL = canvas.toDataURL("image/png");
+
+  return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+};
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -52,20 +54,7 @@ let mediaRecorder = null;
 let videoStream = null;
 let chunks = [];
 
-function Home({
-  ros,
-  connected,
-  setConnected,
-  odometerValue,
-  moveDistancePub,
-  stopAutoPub,
-  cmdVelPub,
-  airSpeedValue,
-  odometerResetPub,
-  edgeFront,
-  edgeRear,
-  lightIntensityPub,
-}) {
+function Home() {
   const [tripName, settripName] = useState("");
   const [inspectoName, setinspectorName] = useState("");
   const [place, setplace] = useState("");
@@ -78,24 +67,54 @@ function Home({
   const [gamepadState, setGamepadState] = useState(false);
   const [showJoystick, setShowJoystick] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const [showPtzCtrl, setShowPtzCtrl] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showFormLogin, setShowFormLogin] = useState(false);
   const [showAuto, setShowAuto] = useState(false);
+  const [autoStart, setAutoStart] = useState(false);
+  const [startPlot, setStartPlot] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [temperature, setTemperature] = useState(0.0);
+  const [edgeFront, setEdgeFront] = useState(true);
+  const [edgeRear, setEdgeRear] = useState(true);
 
-  const brushState = useRef(false);
+  const ros = useRef(null);
+
+  const cmdVelPub = useRef(null);
+  const temperatureSub = useRef(null);
+  const edgeFrontSub = useRef(null);
+  const edgeRearSub = useRef(null);
+  const odometerSub = useRef(null);
+  const airSpeedSub = useRef(null);
+  const areaSub = useRef(null);
+  const flowRateSub = useRef(null);
+  const odometerResetPub = useRef(null);
+  const startAutoPub = useRef(null);
+  const stopAutoPub = useRef(null);
+  const moveDistancePub = useRef(null);
+  const odomSub = useRef(null);
+  const resetOdomPub = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
 
   const canvasRef = useRef(null);
   const playerRef = useRef();
-  const ptzCanvasRef = useRef(null);
 
   const [isRecording, setIsRecording] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
 
+  const [odometerValue, setOdometerValue] = useState(0.0);
+  const [airSpeedValue, setAirSpeedValue] = useState(0.0);
+  const [areaValue, setAreaValue] = useState(0.0);
+  const [flowRateValue, setFlowRateValue] = useState(0.0);
+
+  const [inputValue, setInputValue] = useState("");
+  const [inputDiameter, setInputDiameter] = useState("");
+  const [inputTol, setInputTol] = useState("");
+  const inputValueRef = useRef(null);
+  const inputDiameterRef = useRef(null);
+  const inputTolRef = useRef(null);
   const [showBtnStartTrip, setShowBtnStartTrip] = useState(true);
   const [showBtnEndTrip, setShowBtnEndTrip] = useState(false);
   const navigate = useNavigate();
@@ -107,10 +126,6 @@ function Home({
   const [geninput, setgeninput] = useState({
     n: "",
   });
-  const handlePtz =()=>{
-    console.log("ptz");
-
-  }
   const handleGeneratePDF = async (e) => {
     window.open("/generatepdf", "_blank");
     setgeninput({
@@ -118,6 +133,7 @@ function Home({
       n: "",
     });
     localStorage.setItem("generatepdfyet", true);
+    localStorage.setItem("chart_data", JSON.stringify(realtimeData));
   };
   useEffect(() => {
     if (location.pathname === "/") {
@@ -139,24 +155,6 @@ function Home({
     }
     return () => {};
   }, [location.pathname]);
-
-  useEffect(() => {
-    console.log("edgeFront", edgeFront);
-    if (!edgeFront) {
-      setModalVisible(true);
-    } else {
-      setModalVisible(false);
-    }
-  }, [edgeFront]);
-
-  useEffect(() => {
-    console.log("edgeRear", edgeRear);
-    if (!edgeRear) {
-      setModalVisible(true);
-    } else {
-      setModalVisible(false);
-    }
-  }, [edgeRear]);
   useEffect(() => {
     const verifyCookie = async () => {
       if (!cookies.token_app) {
@@ -167,7 +165,7 @@ function Home({
           { fromwhere: "app" },
           { withCredentials: true }
         );
-        const { status, up, uid } = data;
+        const { status, up } = data;
         if (up) {
           up.forEach((item) => {
             switch (item.p_id) {
@@ -179,15 +177,6 @@ function Home({
             }
           });
         }
-        if (uid == 1) {
-          console.log("tak legit aa");
-          navigate("/login");
-        }
-        if (uid == 1) {
-          console.log("tak legit aa");
-          navigate("/login");
-        }
-
         return status
           ? console.log("")
           : (removeCookie("token_app"),
@@ -195,8 +184,9 @@ function Home({
             console.log("tak legit"));
       }
     };
-    verifyCookie();
-  }, [cookies]);
+
+    //verifyCookie();
+  }, [cookies, navigate, removeCookie]);
 
   const Logout = () => {
     let dates = new Date();
@@ -305,9 +295,6 @@ function Home({
       localStorage.removeItem(timestoragekey);
       localStorage.removeItem("generatepdfyet");
       localStorage.removeItem("tripInformation");
-      localStorage.removeItem("chart");
-      localStorage.removeItem("chart_data");
-      localStorage.removeItem("tripStatus");
     }
   };
 
@@ -374,6 +361,10 @@ function Home({
     });
   };
 
+  const chartContainerRef = useRef(null);
+  const [realtimeData, setRealtimeData] = useState([]);
+  const [chartWidth, setChartWidth] = useState(1350);
+
   useEffect(() => {
     window.addEventListener("load", (event) => {
       const tripInformation = JSON.parse(
@@ -384,41 +375,6 @@ function Home({
       }
     });
   }, []);
-
-  const playchrome = () => {
-    // Your implementation for the playchrome function
-    // You can directly use the implementation from the mainpage.html
-    // or refactor it to fit into the React component structure
-    // For example:
-
-    if (cam !== 4) {
-      return;
-    }
-    preplaynoIE();
-
-    const ip = document.location.hostname;
-    let webport = document.location.port;
-    if (webport === "") {
-      webport = "80";
-    }
-
-    const player = new HxPlayer();
-    const canvas = ptzCanvasRef.current;
-    // console.log(canvas);
-    // console.log(canvas.getContext("webgl"));
-    player.init({ canvas: canvas, width: 640, height: 352 });
-
-    player.playvideo(ip, webport, "12", name0, password0);
-    playerRef.current = player;
-  };
-
-  const stopchrome = () => {
-    if (playerRef.current) {
-      playerRef.current.stopvideo();
-      // console.log("try to stop video");
-    }
-  };
-
   useEffect(() => {
     videoStream = canvasRef.current.captureStream(30);
     mediaRecorder = new MediaRecorder(videoStream, {
@@ -430,12 +386,9 @@ function Home({
       chunks.push(e.data);
     };
     mediaRecorder.onstop = function (e) {
-      const blob = new Blob(chunks, { type: "video/mp4" });
+      const blob = new Blob(chunks, { type: "video/webm" });
       chunks = [];
-      // console.log(blob);
-      // var videoURL = URL.createObjectURL(blob);
-      // video.src = videoURL;
-      saveAs(blob, "video.mp4");
+      saveAs(blob, "video.webm");
     };
 
     return () => {};
@@ -505,7 +458,7 @@ function Home({
             const textWidth = context.measureText(text).width;
             context.fillText(text, cw - textWidth - 10, 30);
           } else if (cam === 2) {
-            const text = "Rear Camera";
+            const text = "Front Camera";
             const textWidth = context.measureText(text).width;
             context.fillText(text, cw - textWidth - 10, 30);
           } else if (cam === 3) {
@@ -750,6 +703,7 @@ function Home({
           ) {
             // console.log("plot joystick");
             setStartPlot(true);
+            setCam(3);
           } else {
             setCam(1);
           }
@@ -780,6 +734,21 @@ function Home({
   }, [showAuto]);
 
   useEffect(() => {
+    if (ros.current) {
+      return;
+    }
+    // ros.current = new ROSLIB.Ros({ url: "ws://192.168.0.141:9090" });
+    ros.current = new ROSLIB.Ros({ url: "ws://192.168.88.2:8080" });
+    // ros.current = new ROSLIB.Ros({ url: "ws://localhost:9090" });
+    ros.current.on("error", function (error) {
+      // console.log(error);
+      setConnected(false);
+    });
+    ros.current.on("connection", function () {
+      // console.log("Connection made!");
+      setConnected(true);
+    });
+
     window.addEventListener("gamepadconnected", (event) => {
       // console.log("A gamepad connected:");
       // console.log(event.gamepad);
@@ -791,39 +760,20 @@ function Home({
       // console.log(event.gamepad);
       setGamepadState(false);
     });
-
-    window.addEventListener("keydown", (evt) => {
+  }, []);
+  useEffect(() => {
+    const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
         return; // Do nothing if an input element has focus
       }
+
       // console.log(evt.code);
       if (evt.code === "Digit1") {
-        console.log("cam 1");
         setCam(1);
-        setShowPtzCtrl(false);
       } else if (evt.code === "Digit2") {
         setCam(2);
-        setShowPtzCtrl(false);
       } else if (evt.code === "Digit3") {
         setCam(3);
-        setShowPtzCtrl(false);
-      } else if (evt.code === "Digit4") {
-        setCam(4);
-        setShowPtzCtrl(true);
-      } else if (evt.code === "Digit5") {
-        setCam(5);
-        setShowPtzCtrl(false);
-        55;
-      } else if (evt.code === "KeyF") {
-        // console.log("brush up");
-        handleBrushArm("up");
-      } else if (evt.code === "KeyV") {
-        // console.log("brush down");
-        handleBrushArm("down");
-      } else if (evt.code === "KeyQ") {
-        brushState.current = !brushState.current;
-        // console.log(brushState.current);
-        handleBrushSpin(brushState.current);
       } else if (evt.code === "ArrowUp") {
         arrowUp = true;
         // // console.log("up press");
@@ -833,14 +783,23 @@ function Home({
         arrowLeft = true;
       } else if (evt.code === "ArrowRight") {
         arrowRight = true;
+      } else if (evt.code === "KeyR" && evt.shiftKey) {
+        console.log("Reset");
+        const confirmed = window.confirm(
+          "Are you sure you want to reset the odometer?"
+        );
+        if (confirmed) {
+          if (odometerResetPub.current) {
+            odometerResetPub.current.publish({});
+          } else {
+            console.error("odometerResetPub.current is null");
+          }
+        }
       }
-    });
+    };
 
-    window.addEventListener("keyup", (evt) => {
-      if (evt.code === "KeyF" || evt.code === "KeyV") {
-        // console.log("brush stop");
-        handleBrushArm("stop");
-      } else if (evt.code === "ArrowUp") {
+    const handleKeyUp = (evt) => {
+      if (evt.code === "ArrowUp") {
         arrowUp = false;
         // // console.log("up lift");
       } else if (evt.code === "ArrowDown") {
@@ -849,68 +808,173 @@ function Home({
         arrowLeft = false;
       } else if (evt.code === "ArrowRight") {
         arrowRight = false;
-      } else if (
-        evt.code === "KeyW" ||
-        evt.code === "KeyA" ||
-        evt.code === "KeyS" ||
-        evt.code === "KeyD" ||
-        evt.code === "KeyZ" ||
-        evt.code === "KeyX"
-      ) {
-        // handlePtz("stop");
       }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    // Cleanup function to remove the event listeners when the component unmounts
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []); // Add any dependencies here
+  useEffect(() => {
+    if (!connected) {
+      return;
+    }
+
+    setConnected(true);
+    // publisher for robot movement
+    cmdVelPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/cmd_vel",
+      messageType: "geometry_msgs/Twist",
     });
 
-    return () => {
-      window.addEventListener("keyup", null);
-      window.addEventListener("keydown", null);
-      window.removeEventListener("gamepadconnected", (event) => {
-        // console.log("A gamepad connected:");
-        // console.log(event.gamepad);
-        setGamepadState(true);
-      });
+    // subscribe to temperature topic
+    temperatureSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/temperature",
+      messageType: "sensor_msgs/Temperature",
+    });
+    temperatureSub.current.subscribe((msg) => {
+      setTemperature(msg.temperature);
+    });
 
-      window.removeEventListener("gamepaddisconnected", (event) => {
-        // console.log("A gamepad disconnected:");
-        // console.log(event.gamepad);
-        setGamepadState(false);
-      });
-    };
-  }, []);
+    // subscribe edge front
+    edgeFrontSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/edge/front",
+      messageType: "std_msgs/Bool",
+    });
+    edgeFrontSub.current.subscribe((msg) => {
+      setEdgeFront(msg.data);
+    });
+
+    // subscribe edge rear
+    edgeRearSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/edge/rear",
+      messageType: "std_msgs/Bool",
+    });
+    edgeRearSub.current.subscribe((msg) => {
+      setEdgeRear(msg.data);
+    });
+
+    // subscribe odometer
+    odometerSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/odometer",
+      messageType: "std_msgs/Float64",
+    });
+
+    airSpeedSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/airspeed",
+      messageType: "std_msgs/Float32",
+    });
+
+    areaSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/area",
+      messageType: "std_msgs/Float32",
+    });
+
+    flowRateSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/flowrate",
+      messageType: "std_msgs/Float32",
+    });
+
+    odometerSub.current.subscribe((msg) => {
+      setOdometerValue(msg.data);
+    });
+    airSpeedSub.current.subscribe((msg) => {
+      setAirSpeedValue(msg.data);
+    });
+    areaSub.current.subscribe((msg) => {
+      setAreaValue(msg.data);
+    });
+    flowRateSub.current.subscribe((msg) => {
+      setFlowRateValue(msg.data);
+    });
+
+    odometerResetPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/odometer_reset",
+      messageType: "std_msgs/Empty",
+    });
+    startAutoPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/start_auto",
+      messageType: "std_msgs/Empty",
+    });
+    stopAutoPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/stop_auto",
+      messageType: "std_msgs/Empty",
+    });
+    resetOdomPub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/reset_odom",
+      messageType: "std_msgs/Empty",
+    });
+    moveDistancePub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/move_distance",
+      messageType: "std_msgs/Float32",
+    });
+
+    odomSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/odom",
+      messageType: "nav_msgs/Odometry",
+    });
+    odomSub.current.subscribe((msg) => {
+      // // console.log(msg);
+      setAirSpeedValue(msg.pose.pose.position.x);
+    });
+  }, [connected]);
 
   useEffect(() => {
     // // console.log(canvas);
     if (cam == 1) {
       // stopchrome();
-      // setUrl("http://localhost:8082/stream?topic=/camera/color/image_raw");
       setUrl("http://192.168.88.2:8081/stream");
-      // nanti tukar
       // setUrl("http://192.168.0.141:8081/stream");
-    } else if (cam == 0) {
-      // stopchrome();
-      setUrl("http://192.168.88.246/stream");
-      // console.log("crack");
     } else if (cam == 2) {
       // stopchrome();
       setUrl("http://192.168.88.2:8082/stream");
     } else if (cam == 3) {
       // stopchrome();
       setUrl("http://192.168.88.2:8083/stream");
-    } else if (cam == 4) {
-      playchrome();
-      setUrl("");
     }
   }, [cam]);
+  useEffect(() => {
+    if (!edgeFront) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeFront]);
 
   useEffect(() => {
-    setCam(1);
-  }, [showAuto]);
+    if (!edgeRear) {
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  }, [edgeRear]);
+
 
   const handleMove = (evt) => {
     // // console.log(evt.y);
     if (showAuto) {
       if (getScaledValue(evt.y, -1, 1, -maxLinear, maxLinear) > 0) {
         setStartPlot(true);
+        setCam(3);
       } else {
         setCam(1);
       }
@@ -971,10 +1035,6 @@ function Home({
     setIntervalId(newIntervalId);
   };
 
-  const handleBrushArm = (payload) => {
-    brushArmPub.current.publish({ data: payload });
-  };
-
   const shutdownInspecto = () => {
     let date = new Date();
     date = date.toLocaleString();
@@ -1013,10 +1073,6 @@ function Home({
       }
     });
   };
-  const handleBrushSpin = (payload) => {
-    brushSpin.current.publish({ data: payload });
-    // // console.log(payload);
-  };
 
   const downloadImage = () => {
     const date = new Date();
@@ -1053,7 +1109,6 @@ function Home({
       // console.log("imgsnapshot key does not exist.");
     }
   };
-
   return (
     <div
       className="w-screen h-screen bg-slate-800 overflow-hidden"
@@ -1063,11 +1118,11 @@ function Home({
     >
       <div className="flex flex-col w-full h-full">
         <NavBar
-          ros={ros}
           connected={connected}
           Logout={Logout}
           setShowJoystick={setShowJoystick}
           setShowShortcuts={setShowShortcuts}
+          temperature={temperature}
           showBtnStartTrip={showBtnStartTrip}
           showBtnEndTrip={showBtnEndTrip}
           restartService={restartService}
@@ -1087,17 +1142,13 @@ function Home({
           endTrip={endTrip}
           startTrip={startTrip}
           showJoystick={showJoystick}
-          setCam={setCam}
-          moveDistancePub={moveDistancePub}
-          stopAutoPub={stopAutoPub}
-          odometerValue={odometerValue}
-          cmdVelPub={cmdVelPub}
+          ros={ros}
         />
         <>
-          <div className="grid grid-cols-12 gap-4 mt-8">
+          <div className="grid grid-cols-12 gap-4 mt-10">
             <div className="col-span-2 flex flex-col justify-center">
-              <ListCameraCard setCam={setCam} setShowPtzCtrl={setShowPtzCtrl} />
-              <div className="card bg-base-100 shadow-xl mt-4 ms-4">
+              <ListCameraCard setCam={setCam} />
+              <div className="card bg-base-100 mt-4 ms-4">
                 <div className="card-body">
                   <h2 className="card-title justify-center">
                     Media Capture Menu
@@ -1121,14 +1172,11 @@ function Home({
                       {!isRecording && "Record"}
                       {isRecording && "Stop"}
                     </Button>
-                    {generateReportAccess ? (
-                      <GeneratePDFButton
-                        handleGeneratePDF={handleGeneratePDF}
-                        showBtnStartTrip={showBtnStartTrip}
-                      />
-                    ) : (
-                      <></>
-                    )}
+                    <GeneratePDFButton
+                      handleGeneratePDF={handleGeneratePDF}
+                      showBtnStartTrip={showBtnStartTrip}
+                      generateReportAccess={generateReportAccess}
+                    />
                   </div>
                 </div>
               </div>
@@ -1141,7 +1189,6 @@ function Home({
                 }}
               >
                 {/* Canvas for 2D context */}
-                {/* nanti bukak */}
                 <canvas
                   className={` ${cam === 4 ? "hidden" : ""}`}
                   ref={canvasRef}
@@ -1151,123 +1198,35 @@ function Home({
               </div>
             </div>
             <div className="col-span-2 flex flex-col justify-center">
-              <ListModuleCard
-                setCam={setCam}
-                setShowPtzCtrl={setShowPtzCtrl}
-                showAuto={showAuto}
-                setShowAuto={setShowAuto}
+              <CleaningModule
+                connected={connected}
+                setConnected={setConnected}
               />
-              <LightController lightIntensityPub={lightIntensityPub} />
+              {showJoystick && (
+                <>
+                  <div className="card bg-base-100 me-4 mt-4">
+                    <div className="card-body">
+                      <h2 className="card-title justify-center">Joystick</h2>
+                      <div className="flex justify-center">
+                        <Joystick
+                          size={150}
+                          sticky={false}
+                          throttle={10}
+                          start={handleStart}
+                          move={handleMove}
+                          stop={handleStop}
+                        ></Joystick>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          <div className="absolute bottom-10 w-fit" style={{left:"40%"}}>
-            <OdometerPanel
-              setConnected={setConnected}
-              odometerValue={odometerValue}
-              airSpeedValue={airSpeedValue}
-              odometerResetPub={odometerResetPub}
-            />
+          <div className="absolute bottom-10">
+            <OdometerPanel />
           </div>
         </>
-
-        {showJoystick && (
-          <>
-            <Draggable handle="strong">
-              <div className="absolute portrait:bottom-0 portrait:right-[7%] landscape:bottom-[5%] landscape:right-[5%] bg-slate-400 p-2 rounded-3xl">
-                <strong>
-                  <div className="flex justify-center items-start hover:cursor-move text-black">
-                    Joystick
-                  </div>
-                </strong>
-                <div className="pt-2">
-                  <Joystick
-                    size={150}
-                    sticky={false}
-                    throttle={10}
-                    start={handleStart}
-                    move={handleMove}
-                    stop={handleStop}
-                  ></Joystick>
-                </div>
-              </div>
-            </Draggable>
-          </>
-        )}
-        {showPtzCtrl && (
-          <>
-            <Draggable handle="strong">
-              <div className="absolute flex flex-col bg-slate-400 portrait:bottom-[1%] portrait:left-[10%] landscape:bottom-[70%] landscape:left-[3%] p-2 rounded-3xl">
-                <div className="flex flex-col items-center">
-                  <div className="flex gap-2 mt-1">
-                    <button
-                      className="ptz-button"
-                      onMouseDown={() => {
-                        // handlePtz("up");
-                        // // console.log("up");
-                      }}
-                      onMouseUp={() => handlePtz("stop")}
-                    >
-                      <AiOutlineArrowUp color="black" size={45} />
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      className="ptz-button"
-                      // onMouseDown={() => handlePtz("left")}
-                      // onMouseUp={() => handlePtz("stop")}
-                    >
-                      <AiOutlineArrowLeft color="black" size={45} />
-                    </button>
-                    <strong>
-                      <div
-                        className="flex justify-center items-start hover:cursor-move text-black"
-                        style={{ marginLeft: "10px", marginTop: "10px" }}
-                      >
-                        PTZ
-                      </div>
-                    </strong>
-                    <button
-                      className="ptz-button"
-                      // onMouseDown={() => handlePtz("right")}
-                      // onMouseUp={() => handlePtz("stop")}
-                      style={{ marginLeft: "10px" }}
-                    >
-                      <AiOutlineArrowRight color="black" size={45} />
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      className="ptz-button"
-                      // onMouseDown={() => handlePtz("down")}
-                      // onMouseUp={() => handlePtz("stop")}
-                    >
-                      <AiOutlineArrowDown color="black" size={45} />
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      className="ptz-button"
-                      // onMouseDown={() => handlePtz("zoomin")}
-                      // onMouseUp={() => handlePtz("stop")}
-                    >
-                      <AiOutlineZoomIn color="black" size={45} />
-                    </button>
-                    <button
-                      className="ptz-button"
-                      // onMouseDown={() => handlePtz("zoomout")}
-                      // onMouseUp={() => handlePtz("stop")}
-                    >
-                      <AiOutlineZoomOut color="black" size={45} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Draggable>
-          </>
-        )}
       </div>
       <Modal className="flex justify-center w-60" open={modalVisible}>
         <Modal.Body>
@@ -1302,92 +1261,6 @@ function Home({
         setShowFormLogin={setShowFormLogin}
         showFormLogin={showFormLogin}
       />
-      <Modal open={showShortcuts}>
-        <form method="dialog">
-          <Button
-            size="sm"
-            color="ghost"
-            shape="circle"
-            className="absolute right-2 top-2"
-            onClick={closeModal}
-          >
-            x
-          </Button>
-        </form>
-        <Modal.Body>
-          <div className="flex justify-center item-center">
-            <div className="post__content">
-              <table>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "center" }}>KEY</th>
-                    <th style={{ textAlign: "center" }}>ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>▲</kbd>
-                      </div>
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>◄</kbd>
-                        <kbd>▼</kbd>
-                        <kbd>►</kbd>
-                      </div>
-                    </td>
-                    <td>ROBOT MOVEMENT</td>
-                  </tr>
-                  <tr>
-                    <td
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>W</kbd>
-                      </div>
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        <kbd>A</kbd>
-                        <kbd>S</kbd>
-                        <kbd>D</kbd>
-                      </div>
-                    </td>
-                    <td>PAN TILT CAMERA</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <kbd>Q</kbd>
-                    </td>
-                    <td>BRUSH: ON/OFF</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <kbd>F</kbd>
-                      <kbd>V</kbd>
-                    </td>
-                    <td>BRUSH: UP/DOWN</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <kbd>Shift + R</kbd>
-                    </td>
-                    <td>RESET ODOMETER</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
     </div>
   );
 }

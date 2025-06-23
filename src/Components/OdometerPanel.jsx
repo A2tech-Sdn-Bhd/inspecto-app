@@ -1,31 +1,76 @@
 import React from "react";
+import { useState } from "react";
+import { useRef } from "react";
 import { useEffect } from "react";
 import Odometer from "react-odometerjs";
-const OdometerPanel = ({odometerValue, airSpeedValue, odometerResetPub}) => {
-
+import * as ROSLIB from "roslib";
+const OdometerPanel = () => {
+  const odometerSub = useRef(null);
+  const [odometerValue, setOdometerValue] = useState(0.0);
+  const [connected, setConnected] = useState(false);
+  const [airSpeedValue, setAirSpeedValue] = useState(0.0);
+  const [areaValue, setAreaValue] = useState(0.0);
+  const [flowRateValue, setFlowRateValue] = useState(0.0);
+  const airSpeedSub = useRef(null);
+  const areaSub = useRef(null);
+  const flowRateSub = useRef(null);
+  const ros = useRef(null);
+  const odomSub = useRef(null);
   useEffect(() => {
-    const handleKeyDown = (evt) => {
-      if (document.activeElement.tagName === "INPUT") {
-        return;
-      }
-      if (evt.code === "KeyR" && evt.shiftKey) {
-        const confirmed = window.confirm(
-          "Are you sure you want to reset the odometer?"
-        );
-        if (confirmed) {
-          odometerResetPub.current.publish({});
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    if (ros.current) {
+      return;
+    }
+    // ros.current = new ROSLIB.Ros({ url: "ws://192.168.0.141:9090" });
+    ros.current = new ROSLIB.Ros({ url: "ws://192.168.88.2:8080" });
+    // ros.current = new ROSLIB.Ros({ url: "ws://localhost:9090" });
+    ros.current.on("error", function (error) {
+      // console.log(error);
+      setConnected(false);
+    });
+    ros.current.on("connection", function () {
+      // console.log("Connection made!");
+      setConnected(true);
+    });
   }, []);
+  useEffect(() => {
+    if (!connected) {
+      return;
+    }
+
+    setConnected(true);
+    // subscribe odometer
+    odometerSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/odometer",
+      messageType: "std_msgs/Float64",
+    });
+
+    airSpeedSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/airspeed",
+      messageType: "std_msgs/Float32",
+    });
+
+
+    odometerSub.current.subscribe((msg) => {
+      setOdometerValue(msg.data);
+    });
+    airSpeedSub.current.subscribe((msg) => {
+      setAirSpeedValue(msg.data);
+    });
+
+    odomSub.current = new ROSLIB.Topic({
+      ros: ros.current,
+      name: "/odom",
+      messageType: "nav_msgs/Odometry",
+    });
+    odomSub.current.subscribe((msg) => {
+      // // console.log(msg);
+      setAirSpeedValue(msg.pose.pose.position.x);
+    });
+  }, [connected]);
   return (
-    <div className="w-fit flex justify-center mt-5">
+    <div className="w-screen flex justify-center mt-5">
       <div className="card card-compact bg-base-100">
         <div className="card-body">
           <div className="grid grid-cols-2 gap-10">

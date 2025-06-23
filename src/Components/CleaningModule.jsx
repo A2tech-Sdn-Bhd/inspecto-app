@@ -1,11 +1,32 @@
 import React, { useState } from "react";
+import * as ROSLIB from "roslib";
 import { useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
+const CleaningModule = ({ connected, setConnected }) => {
+  const brushArmPub = useRef(null);
+  const brushSpin = useRef(null);
   const [brushStatus, setBrushStatus] = useState(false);
-  const [motorSpeedValue, setMotorSpeedValue] = useState(0);
-  const navigate = useNavigate();
+  const ros = useRef(null);
+  useEffect(() => {
+    if (!connected) {
+      return;
+    }
 
+    if (brushArmPub) {
+      brushArmPub.current = new ROSLIB.Topic({
+        ros: ros.current,
+        name: "/brush/up_down",
+        messageType: "std_msgs/String",
+      });
+    }
+    // publisher for on/off brush
+    if (brushSpin) {
+      brushSpin.current = new ROSLIB.Topic({
+        ros: ros.current,
+        name: "/brush/spin",
+        messageType: "std_msgs/Bool",
+      });
+    }
+  }, [connected]);
   const handleBrushArm = (payload) => {
     if (brushArmPub.current) {
       brushArmPub.current.publish({ data: payload });
@@ -16,12 +37,18 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
       brushSpin.current.publish({ data: payload });
     }
   };
-  const handleChange = (event) => {
-    setMotorSpeedValue(event.target.value);
-    if (motorSpeed.current) {
-      motorSpeed.current.publish({ data: event.target.value });
+  useEffect(() => {
+    if (ros.current) {
+      return;
     }
-  };
+    ros.current = new ROSLIB.Ros({ url: "ws://192.168.88.2:8080" });
+    ros.current.on("error", function (error) {
+      setConnected(false);
+    });
+    ros.current.on("connection", function () {
+      setConnected(true);
+    });
+  }, []);
   useEffect(() => {
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
@@ -49,7 +76,8 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [brushStatus, handleBrushArm, handleBrushSpin, setBrushStatus]); // Add any dependencies here
-
+  
+  
   useEffect(() => {
     const handleKeyUp = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
@@ -98,16 +126,7 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
               DOWN
             </button>
           </div>
-          <h3 className="text-center mt-1">Control Brush Motor Speed</h3>
-          <input 
-            type="range" 
-            min={0} 
-            max="255" 
-            value={motorSpeedValue} 
-            onChange={handleChange} 
-            className="range" 
-          />
-          <h3 className="text-center mt-1">Brush Motor Status</h3>
+          <h3 className="text-center mt-1">Control Brush Motor</h3>
           <div className="grid grid-cols-1 gap-2">
             {brushStatus ? (
               <button
@@ -131,14 +150,33 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
               </button>
             )}
           </div>
-          <button
-            className="btn btn-neutral"
-            onClick={() => {
-              navigate("/");
-            }}
-          >
-            {"BACK TO NORMAL MODE"}
-          </button>
+          <h3 className="text-center mt-1">Shortcut Button</h3>
+          <div className="overflow-x-auto">
+            <table className="table border-2 border-neutral table-xs">
+              <thead className="border-2 border-neutral">
+                <tr className="border-2 border-neutral">
+                  <th className="border-2 border-neutral text-neutral">Key</th>
+                  <th className="border-2 border-neutral text-neutral">
+                    Function
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="border-2 border-neutral">
+                <tr>
+                  <td className="border-2 border-neutral">Q</td>
+                  <td className="border-2 border-neutral">Start Brush</td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-neutral">F</td>
+                  <td className="border-2 border-neutral">Increase Angle</td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-neutral">V</td>
+                  <td className="border-2 border-neutral">Decrease Angle</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>
@@ -146,3 +184,7 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
 };
 
 export default CleaningModule;
+
+// f*v button not work properly
+// brush panel not working maybe because of not found ros ws
+// remove start auto

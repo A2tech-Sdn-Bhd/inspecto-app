@@ -1,17 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import logo from "../assets/a2tech.png";
 import { BsJoystick, BsFillKeyboardFill } from "react-icons/bs";
 import ReportForm from "../Components/ReportForm";
-import StartAutomation from "./StartAutomation";
-import { useRef,useState } from "react";
-import * as ROSLIB from "roslib";
 const NavBar = ({
-  ros,
-  setConnected,
   connected,
   Logout,
   setShowJoystick,
   setShowShortcuts,
+  temperature,
   showBtnStartTrip,
   showBtnEndTrip,
   restartService,
@@ -32,32 +28,8 @@ const NavBar = ({
   endTrip,
   startTrip,
   showJoystick,
-  setCam,
-  moveDistancePub,
-  stopAutoPub,
-  odometerValue,
-  getJoystickInput,
-  cmdVelPub
+  ros,
 }) => {
-  const [temperature, setTemperature] = useState(0.0);
-  const temperatureSub = useRef(null);
-  useEffect(() =>{
-    if (!connected) {
-      return;
-    }
-    try {
-      temperatureSub.current = new ROSLIB.Topic({
-        ros: ros.current,
-        name: "/temperature",
-        messageType: "sensor_msgs/Temperature",
-      });
-      temperatureSub.current.subscribe((msg) => {
-        setTemperature(msg.temperature);
-      });
-    } catch (error) {
-      console.error("An error occurred:", error);
-    }
-  },[connected]);
   return (
     <div>
       <div className="flex bg-slate-500 w-full h-14 justify-between px-3">
@@ -91,15 +63,13 @@ const NavBar = ({
           </div>
         </div>
         <div className="flex h-full items-center gap-4">
-            
           <button
             className="btn tooltip tooltip-left btn-neutral"
             data-tip="show keyboard shortcuts"
-            onClick={() => setShowShortcuts(true)}
+            onClick={() => document.getElementById("my_modal_2").showModal()}
           >
             <BsFillKeyboardFill color="white" size={30}></BsFillKeyboardFill>
           </button>
-
           <button
             className="btn tooltip tooltip-left btn-neutral"
             data-tip="show joystick"
@@ -109,7 +79,6 @@ const NavBar = ({
           >
             <BsJoystick color="white" size={30}></BsJoystick>
           </button>
-          <StartAutomation moveDistancePub={moveDistancePub} stopAutoPub={stopAutoPub} odometerValue={odometerValue} getJoystickInput={getJoystickInput} cmdVelPub={cmdVelPub}/>
           {showBtnStartTrip && (
             <button
               className="btn btn-neutral"
@@ -172,6 +141,55 @@ const NavBar = ({
         setShowFormLogin={setShowFormLogin}
         showFormLogin={showFormLogin}
       />
+      {/* Open the modal using document.getElementById('ID').showModal() method */}
+      <dialog id="my_modal_2" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg text-center">Keyboard Shortcut</h3>
+          <div className="overflow-x-auto mt-4">
+            <table className="table">
+              {/* head */}
+              <thead>
+                <tr>
+                  <th className="text-center">Key</th>
+                  <th className="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div className="flex justify-center w-full">
+                      <kbd className="kbd text-black">▲</kbd>
+                    </div>
+                    <div className="flex justify-center gap-12 w-full">
+                      <kbd className="kbd text-black">◀︎</kbd>
+                      <kbd className="kbd text-black">▶︎</kbd>
+                    </div>
+                    <div className="flex justify-center w-full">
+                      <kbd className="kbd text-black">▼</kbd>
+                    </div>
+                  </td>
+                  <td className="text-center">Robot Movement</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="flex justify-center">
+                      <kbd className="kbd text-black">SHIFT</kbd>
+                      <span className="font-bold text-lg">+</span>
+                      <kbd className="kbd text-black">R</kbd>
+                    </div>
+                  </td>
+                  <td className="text-center">
+                    Reset Odometer
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
   );
 };

@@ -44,7 +44,7 @@ const Login = () => {
       }
     };
 
-    verifyCookie();
+    //verifyCookie();
   }, [cookies, navigate, removeCookie]);
 
   const handleError = (err) =>
@@ -103,7 +103,6 @@ const Login = () => {
         },
         { withCredentials: true }
       );
-      console.log(data);
       const { success, message, status, email, usernameVld} = data;
       console.log(success);
       if (success && status == 1) {

@@ -132,7 +132,7 @@ const ReportForm = ({
               </Accordion.Title>
               <Accordion.Content>
                 <form onSubmit={handleSubmit}>
-                  <div className="mb-3 text-black font-bold text-lg">
+                  <div className="mb-3 text-black font-bold text-lg text-center">
                     Please Enter Trip Information
                   </div>
                   <input
@@ -189,7 +189,7 @@ const ReportForm = ({
         <Modal.Body>
           <div>
             <form onSubmit={handleSubmit}>
-              <div className="mb-3 text-black font-bold text-lg">
+              <div className="mb-3 text-black font-bold text-lg text-center">
                 Please Enter Trip Information
               </div>
               <input
@@ -217,7 +217,7 @@ const ReportForm = ({
               />
               <br />
               <select
-                className="select select-bordered w-full max-w-xs"
+                className="select select-bordered w-full"
                 value={tripType}
                 onChange={handleTripType}
                 defaultValue="Trip Type"

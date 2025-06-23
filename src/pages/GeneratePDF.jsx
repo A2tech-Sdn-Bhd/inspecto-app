@@ -7,12 +7,14 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-
-import { useEffect, useRef, useState } from "react";
+import ChartJsImage from "chartjs-to-image";
+import { useEffect, useState } from "react";
+import { Buffer } from "buffer/";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
+window.Buffer = Buffer;
 const GeneratePDF = () => {
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const [imageSrc, setImageSrc] = useState(null);
@@ -53,9 +55,8 @@ const GeneratePDF = () => {
       }
     };
 
-    verifyCookie();
+    //verifyCookie();
   }, [cookies, navigate, removeCookie]);
-
   if (!localStorage.getItem(`endTime_${tripID}`)) {
     localStorage.setItem(`endTime_${tripID}`, JSON.stringify(endTime));
   }
@@ -67,7 +68,6 @@ const GeneratePDF = () => {
   const endTimeValue = endTimeArray[endTimeIndex][1];
   const storageKey = `imgSnapshot_${tripID}`;
   const imageData = [];
-  
   if (localStorage && storageKey in localStorage) {
     const listImg = JSON.parse(localStorage.getItem(storageKey));
     if (listImg) {
@@ -77,7 +77,7 @@ const GeneratePDF = () => {
         imageData.push({
           inspectoName: inspectoName,
           src: listImg[i][1],
-          odomVal: parseFloat(listImg[i][2]).toFixed(2),
+          odomVal: parseFloat(listImg[i][2]).toFixed(3),
         });
       }
     }
@@ -157,8 +157,48 @@ const GeneratePDF = () => {
     },
   });
   useEffect(() => {
-    setImageSrc(JSON.parse(localStorage.getItem("chart")))
+    const data = JSON.parse(localStorage.getItem("chart_data"));
+    if (data && data.length > 0) {
+      const columns = Object.keys(data[0]);
+
+      const myChart = new ChartJsImage();
+      myChart.setConfig({
+        type: "line",
+        data: {
+          labels: data.map((item) => item[columns[0]]),
+          datasets: [
+            {
+              label: "Low Range",
+              data: data.map((item) => item[columns[1]]),
+              borderColor: "rgb(255, 99, 132)",
+              borderWidth: 1,
+            },
+            {
+              label: "Diameter",
+              data: data.map((item) => item[columns[2]]),
+              borderColor: "rgb(54, 162, 235)",
+              borderWidth: 1,
+            },
+            {
+              label: "High Range",
+              data: data.map((item) => item[columns[3]]),
+              borderColor: "rgb(75, 192, 192)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+      myChart.toDataUrl().then((data) => setImageSrc(data));
+    }
   }, []);
+
   const PdfDoc = () => (
     <PDFViewer className="h-screen w-screen">
       <Document title={titlename}>
@@ -286,11 +326,10 @@ const GeneratePDF = () => {
       </Document>
     </PDFViewer>
   );
+
   return (
     <div>
-      <>
-        <PdfDoc />
-      </>
+      <PdfDoc />
     </div>
   );
 };
