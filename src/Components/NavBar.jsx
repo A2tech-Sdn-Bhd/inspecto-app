@@ -160,12 +160,10 @@ const NavBar = ({
                     <div className="flex justify-center w-full">
                       <kbd className="kbd text-black">▲</kbd>
                     </div>
-                    <div className="flex justify-center gap-12 w-full">
-                      <kbd className="kbd text-black">◀︎</kbd>
-                      <kbd className="kbd text-black">▶︎</kbd>
-                    </div>
                     <div className="flex justify-center w-full">
+                      <kbd className="kbd text-black">◀︎</kbd>
                       <kbd className="kbd text-black">▼</kbd>
+                      <kbd className="kbd text-black">▶︎</kbd>
                     </div>
                   </td>
                   <td className="text-center">Robot Movement</td>
@@ -178,9 +176,24 @@ const NavBar = ({
                       <kbd className="kbd text-black">R</kbd>
                     </div>
                   </td>
-                  <td className="text-center">
-                    Reset Odometer
+                  <td className="text-center">Reset Odometer</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="flex justify-center">
+                      <kbd className="kbd text-black">Q</kbd>
+                    </div>
                   </td>
+                  <td className="text-center">Start brush</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="flex justify-center items-center gap-2">
+                      <kbd className="kbd text-black">F</kbd> /{" "}
+                      <kbd className="kbd text-black">V</kbd>
+                    </div>
+                  </td>
+                  <td className="text-center">Increase/Decrease Angle</td>
                 </tr>
               </tbody>
             </table>

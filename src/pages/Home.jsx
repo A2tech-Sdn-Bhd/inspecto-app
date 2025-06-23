@@ -968,7 +968,6 @@ function Home() {
     }
   }, [edgeRear]);
 
-
   const handleMove = (evt) => {
     // // console.log(evt.y);
     if (showAuto) {
@@ -1154,6 +1153,7 @@ function Home() {
                     Media Capture Menu
                   </h2>
                   <div className="mt-2 grid grid-row gap-2 ">
+                    <div className="grid grid-cols-2 gap-2">
                     <button className="btn btn-neutral" onClick={downloadImage}>
                       {"Snapshot"}
                     </button>
@@ -1165,18 +1165,58 @@ function Home() {
                           mediaRecorder.start();
                         } else {
                           setIsRecording(false);
-                          mediaRecorder.stop();
+                          mediaRecorder.stop();<button
+                          className="btn btn-error btn-block"
+                          onClick={() => {
+                            handleBrushSpin(false);
+                            setBrushStatus(!brushStatus);
+                          }}
+                        >
+                          STOP BRUSH
+                        </button>
                         }
                       }}
                     >
                       {!isRecording && "Record"}
                       {isRecording && "Stop"}
                     </Button>
+                    </div>
                     <GeneratePDFButton
                       handleGeneratePDF={handleGeneratePDF}
                       showBtnStartTrip={showBtnStartTrip}
                       generateReportAccess={generateReportAccess}
                     />
+                  </div>
+                </div>
+              </div>
+              <div className="card bg-base-100 ms-4 mt-4">
+                <div className="card-body">
+                  <h2 className="card-title justify-center">LED Controller</h2>
+
+                  <h3 className="text-center mt-1">Control LED light</h3>
+                  <input
+                    type="range"
+                    min={0}
+                    max="100"
+                    value="25"
+                    className="range"
+                    step="25"
+                  />
+                  <div className="w-full flex justify-between text-xs px-2">
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                    <span>|</span>
+                  </div>
+                  <div className="w-full flex justify-between text-xs px-2">
+                    <span>0</span>
+                    <span>1</span>
                   </div>
                 </div>
               </div>
@@ -1202,6 +1242,7 @@ function Home() {
                 connected={connected}
                 setConnected={setConnected}
               />
+              
               {showJoystick && (
                 <>
                   <div className="card bg-base-100 me-4 mt-4">

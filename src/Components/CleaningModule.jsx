@@ -76,8 +76,7 @@ const CleaningModule = ({ connected, setConnected }) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [brushStatus, handleBrushArm, handleBrushSpin, setBrushStatus]); // Add any dependencies here
-  
-  
+
   useEffect(() => {
     const handleKeyUp = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
@@ -97,7 +96,6 @@ const CleaningModule = ({ connected, setConnected }) => {
   }, [handleBrushArm]); // Add any dependencies here
 
   return (
-    <>
       <div className="card bg-base-100 me-4">
         <div className="card-body">
           <h2 className="card-title justify-center">Brush Controller</h2>
@@ -126,6 +124,36 @@ const CleaningModule = ({ connected, setConnected }) => {
               DOWN
             </button>
           </div>
+          <h3 className="text-center mt-1">Control Brush Speed</h3>
+          <input
+            type="range"
+            min={0}
+            max="100"
+            value="25"
+            className="range"
+            step="25"
+          />
+          <div className="w-full flex justify-between text-xs px-2">
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+            <span>|</span>
+          </div>
+          <div className="w-full flex justify-between text-xs px-2">
+            <span>0</span>
+            <span>1</span>
+          </div>
+          <h3 className="text-center mt-1">Control Brush Rotation</h3>
+          <div className="tabs tabs-boxed w-fit">
+            <a className="tab">Forward</a>
+            <a className="tab tab-active">Reverse</a>
+          </div>
           <h3 className="text-center mt-1">Control Brush Motor</h3>
           <div className="grid grid-cols-1 gap-2">
             {brushStatus ? (
@@ -150,41 +178,9 @@ const CleaningModule = ({ connected, setConnected }) => {
               </button>
             )}
           </div>
-          <h3 className="text-center mt-1">Shortcut Button</h3>
-          <div className="overflow-x-auto">
-            <table className="table border-2 border-neutral table-xs">
-              <thead className="border-2 border-neutral">
-                <tr className="border-2 border-neutral">
-                  <th className="border-2 border-neutral text-neutral">Key</th>
-                  <th className="border-2 border-neutral text-neutral">
-                    Function
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="border-2 border-neutral">
-                <tr>
-                  <td className="border-2 border-neutral">Q</td>
-                  <td className="border-2 border-neutral">Start Brush</td>
-                </tr>
-                <tr>
-                  <td className="border-2 border-neutral">F</td>
-                  <td className="border-2 border-neutral">Increase Angle</td>
-                </tr>
-                <tr>
-                  <td className="border-2 border-neutral">V</td>
-                  <td className="border-2 border-neutral">Decrease Angle</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
-    </>
   );
 };
 
 export default CleaningModule;
-
-// f*v button not work properly
-// brush panel not working maybe because of not found ros ws
-// remove start auto
