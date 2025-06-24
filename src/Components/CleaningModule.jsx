@@ -199,6 +199,18 @@ const CleaningModule = ({ connected, setConnected }) => {
           onChange={handleSpeedChange}
         />
         <div className="w-full flex justify-between text-xs px-2">
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+          <span>|</span>
+        </div>
+        <div className="w-full flex justify-between text-xs px-2">
           <span>0.1</span>
           <span>1.0</span>
         </div>
