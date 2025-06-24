@@ -44,7 +44,7 @@ const Login = () => {
       }
     };
 
-    //verifyCookie();
+    verifyCookie();
   }, [cookies, navigate, removeCookie]);
 
   const handleError = (err) =>

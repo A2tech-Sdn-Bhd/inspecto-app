@@ -161,9 +161,13 @@ function Home() {
   }, [location.pathname]);
   useEffect(() => {
     const verifyCookie = async () => {
+      console.log("start verify");
+      
       if (!cookies.token_app) {
+        console.log("token not avail");
         navigate("/login");
       } else {
+        console.log("token avail");
         const { data } = await axios.post(
           `${API_URL}`,
           { fromwhere: "app" },
@@ -189,7 +193,7 @@ function Home() {
       }
     };
 
-    //verifyCookie();
+    verifyCookie();
   }, [cookies, navigate, removeCookie]);
 
   const Logout = () => {
