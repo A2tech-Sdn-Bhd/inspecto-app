@@ -36,8 +36,8 @@ const LEDController = ({ connected,ledControlBackPub, ledControlFrontPub }) => {
   return (
     <div className="card bg-base-100 ms-4 mt-4">
       <div className="card-body">
-        <h2 className="card-title justify-center">LED Controller</h2>
-        <h3 className="text-center mt-1">Control LED light</h3>
+        <h2 className="card-title justify-center">LED Control</h2>
+        <h3 className="text-center mt-1">Control LED Intensity</h3>
         <input
           type="range"
           min={0}

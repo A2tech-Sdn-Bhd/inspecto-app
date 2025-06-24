@@ -171,7 +171,7 @@ const CleaningModule = ({ connected, setConnected }) => {
   return (
     <div className="card bg-base-100 me-4">
       <div className="card-body">
-        <h2 className="card-title justify-center">Brush Controller</h2>
+        <h2 className="card-title justify-center">Brush Control</h2>
         <h3 className="text-center mt-1">Control Brush Angle</h3>
         <div className="grid grid-cols-2 gap-2">
           <button

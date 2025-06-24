@@ -9,7 +9,9 @@ const VideoStreamPanel = ({canvasRef, cam}) =>{
         >
           {/* Canvas for 2D context */}
           <canvas
-            className={` ${cam === 4 ? "hidden" : ""}`}
+             className={`bg-white w-full h-full ${
+              cam === 4 ? "hidden" : ""
+            }`}
             ref={canvasRef}
             width={1274}
             height={670}
