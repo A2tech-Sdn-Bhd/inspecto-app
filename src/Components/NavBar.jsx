@@ -42,14 +42,14 @@ const NavBar = ({
               <div className="flex gap-1">
                 <h1 className="font-semibold text-2xl">Status:</h1>
                 <h1 className="font-semibold text-lime-400 text-2xl">
-                  Connected
+                System On
                 </h1>
               </div>
             ) : (
               <div className="flex gap-1">
                 <h1 className="font-semibold text-2xl">Status:</h1>
                 <h1 className="font-semibold text-red-600 text-2xl">
-                  Disconnected
+                  System Down
                 </h1>
               </div>
             )}
