@@ -127,7 +127,6 @@ function Home() {
   const location = useLocation();
   const [generateReportAccess, setGenerateReportAccess] = useState(false);
   const [handleUseButton, setHandleUseButton] = useState(false);
-  const [showWifiIndicator, setShowWifiIndicator] = useState(false);
 
   const [geninput, setgeninput] = useState({
     n: "",
@@ -159,7 +158,7 @@ function Home() {
         setShowFormLogin(true);
       }
     }
-    return () => { };
+    return () => {};
   }, [location.pathname]);
   useEffect(() => {
     const verifyCookie = async () => {
@@ -401,7 +400,7 @@ function Home() {
       saveAs(blob, "video.webm");
     };
 
-    return () => { };
+    return () => {};
   }, [canvasRef.current]);
 
   const image = new Image();
@@ -411,7 +410,7 @@ function Home() {
   useEffect(() => {
     if (canvasRef.current) {
       setIsCanvasReady(true);
-      console.log("✅ Canvas is ready:", canvasRef.current)
+      console.log("✅ Canvas is ready:", canvasRef.current);
     } else {
       console.warn("⚠️ Canvas is still null!");
     }
@@ -862,7 +861,6 @@ function Home() {
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
-    // Cleanup function to remove the event listeners when the component unmounts
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
@@ -1130,9 +1128,7 @@ function Home() {
       }
     });
   };
-  const toggleWifiPopup = () => {
-    setShowWifiIndicator(!showWifiIndicator)
-  }
+
   const downloadImage = () => {
     const date = new Date();
     let name = `${date.getFullYear()}${date.getMonth()}${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}.jpg`;
@@ -1234,7 +1230,6 @@ function Home() {
           startTrip={startTrip}
           showJoystick={showJoystick}
           ros={ros}
-          toggleWifiPopup={toggleWifiPopup}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-10">
@@ -1288,70 +1283,7 @@ function Home() {
           </div>
         </>
       </div>
-      {showWifiIndicator && (
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 bg-black bg-opacity-20 z-40 cursor-pointer" onClick={toggleWifiPopup} />
-
-          {/* Popup Content */}
-          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4">
-            <div className="card bg-white shadow-lg border border-gray-200">
-              <div className="card-content p-0">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <BsWifi className={`h-5 w-5 `} />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Inspecto router</h3>
-                      <p className="text-sm text-gray-500 capitalize">good signal</p>
-                    </div>
-                  </div>
-                  <button variant="ghost" size="sm" onClick={toggleWifiPopup} className="h-8 w-8 p-0">
-                    <button className="h-4 w-4" >X</button>
-                  </button>
-                </div>
-
-                {/* WiFi Metrics */}
-                <div className="p-4 space-y-4">
-                  {/* Signal Strength Bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Signal Strength</span>
-                      <span className="text-sm text-gray-500">-59 dBm</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300bg-green-500`}
-
-                      />
-                    </div>
-                  </div>
-
-                  {/* Metrics Grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Frequency</p>
-                      <p className="text-sm font-semibold text-gray-900">5.3 GHz</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Bit Rate</p>
-                      <p className="text-sm font-semibold text-gray-900">360 Mb/s</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">TX Power</p>
-                      <p className="text-sm font-semibold text-gray-900">22 dBm</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Link Quality</p>
-                      <p className="text-sm font-semibold text-gray-900">51/70</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      
       <Modal className="flex justify-center w-60" open={modalVisible}>
         <Modal.Body>
           <div className="flex flex-col gap-1">

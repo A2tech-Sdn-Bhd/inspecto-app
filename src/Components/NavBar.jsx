@@ -2,10 +2,8 @@ import React from "react";
 import logo from "../assets/a2tech.png";
 import { BsJoystick, BsFillKeyboardFill } from "react-icons/bs";
 import ReportForm from "../Components/ReportForm";
-import { BsWifi1, BsWifi2, BsWifi } from "react-icons/bs";
-import { FaArrowAltCircleRight, FaArrowAltCircleLeft } from "react-icons/fa";
+import WifiSignalIndicatorButton from "./WifiSignalIndicatorButton";
 import { BiJoystickButton } from "react-icons/bi";
-
 
 const NavBar = ({
   connected,
@@ -31,10 +29,7 @@ const NavBar = ({
   endTrip,
   startTrip,
   showJoystick,
-  toggleWifiPopup
 }) => {
-
-
   return (
     <div>
       <div className="flex bg-slate-500 w-full h-14 justify-between px-3">
@@ -67,19 +62,15 @@ const NavBar = ({
             </div>
           </div> */}
         </div>
+
         <div className="flex h-full items-center gap-4">
-
-          <div className="indicator" onClick={() => { toggleWifiPopup() }}>
-            <span className="indicator-item indicator-bottom indicator-start badge badge-secondary bg-amber-300 border-amber-300"></span>
-            <button className="btn btn-neutral">
-              <BsWifi className="" color="oklch(87.9% 0.169 91.605)" size={30} />
-            </button>
-          </div>
-
+          <WifiSignalIndicatorButton/>
           <button
             className="btn tooltip tooltip-left btn-neutral"
             data-tip="show keyboard shortcuts"
-            onClick={() => document.getElementById("keyboard_shortcut_modal").showModal()}
+            onClick={() =>
+              document.getElementById("keyboard_shortcut_modal").showModal()
+            }
           >
             <BsFillKeyboardFill color="white" size={30}></BsFillKeyboardFill>
           </button>
@@ -87,7 +78,9 @@ const NavBar = ({
           <button
             className="btn tooltip tooltip-left btn-neutral"
             data-tip="show keyboard shortcuts"
-            onClick={() => document.getElementById("steamdeck_shortcut_modal").showModal()}
+            onClick={() =>
+              document.getElementById("steamdeck_shortcut_modal").showModal()
+            }
           >
             <BiJoystickButton color="white" size={30}></BiJoystickButton>
           </button>
@@ -224,7 +217,9 @@ const NavBar = ({
                         <kbd className="kbd text-black">D</kbd>
                       </div>
                     </td>
-                    <td className="text-center">Increase/Decrease Brush Speed</td>
+                    <td className="text-center">
+                      Increase/Decrease Brush Speed
+                    </td>
                   </tr>
                   <tr>
                     <td>
@@ -233,7 +228,9 @@ const NavBar = ({
                         <kbd className="kbd text-black">C</kbd>
                       </div>
                     </td>
-                    <td className="text-center">Increase/Decrease Light Intensity</td>
+                    <td className="text-center">
+                      Increase/Decrease Light Intensity
+                    </td>
                   </tr>
                   <tr>
                     <td>
@@ -266,7 +263,9 @@ const NavBar = ({
       <dialog id="steamdeck_shortcut_modal" className="modal">
         <div className="modal-box min-w-[1200px]">
           <div>
-            <h3 className="font-bold text-lg text-center mb-5">Steam Deck Shortcut</h3>
+            <h3 className="font-bold text-lg text-center mb-5">
+              Steam Deck Shortcut
+            </h3>
             <img src="./public/shortcut.png" alt="" />
           </div>
         </div>
