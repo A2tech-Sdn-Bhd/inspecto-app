@@ -4,21 +4,21 @@ const GeneratePDFButton = ({handleGeneratePDF, showBtnStartTrip, generateReportA
     <>
     {generateReportAccess ? (
           showBtnStartTrip ? (
-            <button className="btn btn-primary" onClick={handleGeneratePDF}>
+            <button className="btn btn-primary btn-sm" onClick={handleGeneratePDF}>
             Generate PDF
           </button>
           ):(
-            <button className="btn text-neutral"  disabled="disabled" onClick={handleGeneratePDF}>
+            <button className="btn text-neutral btn-sm"  disabled="disabled" onClick={handleGeneratePDF}>
               Generate PDF
             </button>
           )
     ):(
       showBtnStartTrip ? (
-        <button className="btn btn-primary" disabled="disabled">
+        <button className="btn btn-primary btn-sm" disabled="disabled">
         Generate PDF
       </button>
       ):(
-        <button className="btn text-neutral"  disabled="disabled">
+        <button className="btn text-neutral btn-sm"  disabled="disabled">
           Generate PDF
         </button>
       )

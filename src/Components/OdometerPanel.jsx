@@ -51,7 +51,6 @@ const OdometerPanel = () => {
       messageType: "std_msgs/Float32",
     });
 
-
     odometerSub.current.subscribe((msg) => {
       setOdometerValue(msg.data);
     });

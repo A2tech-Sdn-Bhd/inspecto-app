@@ -100,29 +100,35 @@ const MediaPanel = ({
     localStorage.setItem("chart_data", JSON.stringify(realtimeData));
   };
   return (
-    <div className="card bg-base-100 mt-4 ms-4">
+    <div className="card bg-base-100 mt-4 ms-4 card-compact">
       <div className="card-body">
-        <h2 className="card-title justify-center">Media Capture</h2>
+        <h2 className="card-title justify-center">Media</h2>
         <div className="mt-2 grid grid-row gap-2 ">
-          <div className="grid grid-cols-2 gap-2">
-            <button className="btn btn-neutral" onClick={downloadImage}>
+          <div className="grid grid-cols-1 gap-2">
+            <button className="btn btn-neutral btn-sm" onClick={downloadImage}>
               {"Snapshot"}
             </button>
-            <Button
-              color={isRecording ? "error" : "neutral"}
-              onClick={() => {
-                if (!isRecording) {
+            {!isRecording ? (
+              <button
+                className="btn btn-neutral btn-sm"
+                onClick={() => {
                   setIsRecording(true);
                   mediaRecorder.start(1000);
-                } else {
+                }}
+              >
+                {"Record"}
+              </button>
+            ) : (
+              <button
+                className="btn btn-error btn-sm"
+                onClick={() => {
                   setIsRecording(false);
                   mediaRecorder.stop();
-                }
-              }}
-            >
-              {!isRecording && "Record"}
-              {isRecording && "Stop"}
-            </Button>
+                }}
+              >
+                {"Record"}
+              </button>
+            )}
           </div>
           <GeneratePDFButton
             handleGeneratePDF={handleGeneratePDF}

@@ -905,12 +905,6 @@ function Home() {
       messageType: "std_msgs/Float64",
     });
 
-    airSpeedSub.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/airspeed",
-      messageType: "std_msgs/Float32",
-    });
-
     areaSub.current = new ROSLIB.Topic({
       ros: ros.current,
       name: "/area",
@@ -925,9 +919,6 @@ function Home() {
 
     odometerSub.current.subscribe((msg) => {
       setOdometerValue(msg.data);
-    });
-    airSpeedSub.current.subscribe((msg) => {
-      setAirSpeedValue(msg.data);
     });
     areaSub.current.subscribe((msg) => {
       setAreaValue(msg.data);
@@ -969,7 +960,7 @@ function Home() {
     });
     odomSub.current.subscribe((msg) => {
       // // console.log(msg);
-      setAirSpeedValue(msg.pose.pose.position.x);
+      
     });
     ledControlFrontPub.current = new ROSLIB.Topic({
       ros: ros.current,
@@ -1186,8 +1177,8 @@ function Home() {
           ros={ros}
         />
         <>
-          <div className="grid grid-cols-12 gap-4 mt-10">
-            <div className="col-span-2 flex flex-col justify-center">
+          <div className="grid grid-cols-12 gap-4 mt-4">
+            <div className="col-span-2 flex flex-col">
               <ListCameraCard setCam={setCam} />
               <MediaPanel
                 isRecording={isRecording}
@@ -1206,7 +1197,7 @@ function Home() {
             </div>
             <VideoStreamPanel canvasRef={canvasRef} cam={cam} />
 
-            <div className="col-span-2 flex flex-col justify-center">
+            <div className="col-span-2 flex flex-col">
               <CleaningModule
                 connected={connected}
                 setConnected={setConnected}
@@ -1214,12 +1205,12 @@ function Home() {
 
               {showJoystick && (
                 <>
-                  <div className="card bg-base-100 me-4 mt-4">
+                  <div className="card bg-base-100 mt-4 me-4">
                     <div className="card-body">
                       <h2 className="card-title justify-center">Joystick</h2>
                       <div className="flex justify-center">
                         <Joystick
-                          size={150}
+                          size={120}
                           sticky={false}
                           throttle={10}
                           start={handleStart}

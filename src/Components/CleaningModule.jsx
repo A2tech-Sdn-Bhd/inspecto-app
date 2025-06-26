@@ -202,15 +202,17 @@ const CleaningModule = ({ connected, setConnected }) => {
   }, [brushStatus]);
 
   return (
-    <div className="card bg-base-100 me-4">
+    <div className="card bg-base-100 me-4 card-compact">
       <div className="card-body">
-        <h2 className="card-title justify-center">Brush Control</h2>
-        <h3 className="text-center mt-1">Control Brush Angle</h3>
+        <h2 className="card-title justify-center">Brush</h2>
+        <h3 className="text-center">Brush Angle</h3>
         <div className="grid grid-cols-2 gap-2">
           <button
             className="btn btn-neutral"
             onMouseDown={() => handleBrushArmUp(true)}
             onMouseUp={() => handleBrushArmUp(false)}
+            onTouchStart={() => handleBrushArmUp(true)} // Add touch support
+            onTouchEnd={() => handleBrushArmUp(false)} // Add touch support
           >
             UP
           </button>
@@ -218,6 +220,8 @@ const CleaningModule = ({ connected, setConnected }) => {
             className="btn btn-neutral"
             onMouseDown={() => handleBrushArmDown(true)}
             onMouseUp={() => handleBrushArmDown(false)}
+            onTouchStart={() => handleBrushArmDown(true)}
+            onTouchEnd={() => handleBrushArmDown(false)}
           >
             DOWN
           </button>
@@ -231,22 +235,6 @@ const CleaningModule = ({ connected, setConnected }) => {
           className="range"
           onChange={handleSpeedChange}
         />
-        <div className="w-full flex justify-between text-xs px-2">
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-        </div>
-        <div className="w-full flex justify-between text-xs px-2">
-          <span>0.1</span>
-          <span>1.0</span>
-        </div>
         <h3 className="text-center mt-1">Control Brush Motor</h3>
         <div className="grid grid-cols-1 gap-2">
           {brushStatus ? (

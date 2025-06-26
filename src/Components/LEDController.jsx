@@ -97,35 +97,19 @@ const LEDController = ({
   }, []);
 
   return (
-    <div className="card bg-base-100 ms-4 mt-4">
+    <div className="card bg-base-100 ms-4 mt-4 card-compact relative z-10">
       <div className="card-body">
         <h2 className="card-title justify-center">LED Control</h2>
-        <h3 className="text-center mt-1">Control LED Intensity</h3>
+        <h3 className="text-center mt-1">Intensity</h3>
         <input
           type="range"
           min={0}
           max={100}
           value={intensity}
-          className="range"
+          className="range z-20"
           step="1"
           onChange={handleIntensityChange}
         />
-        <div className="w-full flex justify-between text-xs px-2">
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-          <span>|</span>
-        </div>
-        <div className="w-full flex justify-between text-xs px-2">
-          <span>0.0</span>
-          <span>1.0</span>
-        </div>
       </div>
     </div>
   );
