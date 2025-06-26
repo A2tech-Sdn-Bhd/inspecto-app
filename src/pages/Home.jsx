@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { ToastContainer, toast } from "react-toastify";
 import LEDController from "../Components/LEDController";
 import VideoStreamPanel from "../Components/VideoStreamPanel";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,7 +10,7 @@ import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import { saveAs } from "file-saver";
-import { Button, Modal } from "react-daisyui";
+import { Modal } from "react-daisyui";
 import { GoAlert } from "react-icons/go";
 import "../App.css";
 import CleaningModule from "../Components/CleaningModule";
@@ -18,19 +19,6 @@ import ListCameraCard from "../Components/ListCameraCard";
 import OdometerPanel from "../Components/OdometerPanel";
 import NavBar from "../Components/NavBar";
 import MediaPanel from "../Components/MediaPanel";
-import { BsWifi } from "react-icons/bs";
-const getBase64Image = (img) => {
-  var canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  var ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-
-  var dataURL = canvas.toDataURL("image/png");
-
-  return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-};
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -103,23 +91,11 @@ function Home() {
   const [url, setUrl] = useState("");
 
   const canvasRef = useRef(null);
-  const playerRef = useRef();
-
   const [isRecording, setIsRecording] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const [odometerValue, setOdometerValue] = useState(0.0);
-  const [airSpeedValue, setAirSpeedValue] = useState(0.0);
-  const [areaValue, setAreaValue] = useState(0.0);
-  const [flowRateValue, setFlowRateValue] = useState(0.0);
-
-  const [inputValue, setInputValue] = useState("");
-  const [inputDiameter, setInputDiameter] = useState("");
-  const [inputTol, setInputTol] = useState("");
-  const inputValueRef = useRef(null);
-  const inputDiameterRef = useRef(null);
-  const inputTolRef = useRef(null);
   const [showBtnStartTrip, setShowBtnStartTrip] = useState(true);
   const [showBtnEndTrip, setShowBtnEndTrip] = useState(false);
   const navigate = useNavigate();
@@ -243,26 +219,6 @@ function Home() {
     });
   };
 
-  function closeModal() {
-    setShowShortcuts(false);
-  }
-
-  const handleInputChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.-]/g, "");
-    setInputValue(sanitizedValue);
-  };
-  const handleInputDiameterChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.]/g, "");
-    setInputDiameter(sanitizedValue);
-  };
-  const handleInputTolChange = (event) => {
-    const input = event.target.value;
-    const sanitizedValue = input.replace(/[^0-9.]/g, "");
-    setInputTol(sanitizedValue);
-  };
-
   const handleTripBtns = () => {
     setShowBtnStartTrip(!showBtnStartTrip);
     setShowBtnEndTrip(!showBtnEndTrip);
@@ -369,10 +325,6 @@ function Home() {
       }
     });
   };
-
-  const chartContainerRef = useRef(null);
-  const [realtimeData, setRealtimeData] = useState([]);
-  const [chartWidth, setChartWidth] = useState(1350);
 
   useEffect(() => {
     window.addEventListener("load", (event) => {
@@ -809,27 +761,55 @@ function Home() {
     });
   }, []);
   useEffect(() => {
+    let arrowUpShown = false;
+    let arrowDownShown = false;
+    let arrowLeftShown = false;
+    let arrowRightShown = false;
+    let camFrontShown = false;
+    let camArmShown = false;
+    let camRearShown = false;
+
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
         return; // Do nothing if an input element has focus
       }
 
-      // console.log(evt.code);
-      if (evt.code === "Digit1") {
+      if (evt.code === "Digit1" && !camFrontShown) {
         setCam(1);
-      } else if (evt.code === "Digit2") {
+        camFrontShown = true;
+        toast.dismiss();
+        toast.info("Cam front");
+      } else if (evt.code === "Digit2" && !camArmShown) {
         setCam(2);
-      } else if (evt.code === "Digit3") {
+        camArmShown = true;
+        toast.dismiss();
+        toast.info("Cam arm");
+      } else if (evt.code === "Digit3" && !camRearShown) {
         setCam(3);
-      } else if (evt.code === "ArrowUp") {
+        camRearShown = true;
+        toast.dismiss();
+        toast.info("Cam rear");
+      } else if (evt.code === "ArrowUp" && !arrowUpShown) {
         arrowUp = true;
-        // // console.log("up press");
-      } else if (evt.code === "ArrowDown") {
+        arrowUpShown = true;
+        console.log("forward");
+        toast.dismiss();
+        toast.info("Move forward");
+      } else if (evt.code === "ArrowDown" && !arrowDownShown) {
         arrowDown = true;
-      } else if (evt.code === "ArrowLeft") {
+        arrowDownShown = true;
+        toast.dismiss();
+        toast.info("Move backward");
+      } else if (evt.code === "ArrowLeft" && !arrowLeftShown) {
         arrowLeft = true;
-      } else if (evt.code === "ArrowRight") {
+        arrowLeftShown = true;
+        toast.dismiss();
+        toast.info("Move left");
+      } else if (evt.code === "ArrowRight" && !arrowRightShown) {
         arrowRight = true;
+        arrowRightShown = true;
+        toast.dismiss();
+        toast.info("Move right");
       } else if (evt.code === "KeyR" && evt.shiftKey) {
         console.log("Reset");
         const confirmed = window.confirm(
@@ -848,13 +828,22 @@ function Home() {
     const handleKeyUp = (evt) => {
       if (evt.code === "ArrowUp") {
         arrowUp = false;
-        // // console.log("up lift");
+        arrowUpShown = false; // Reset flag when key is released
       } else if (evt.code === "ArrowDown") {
         arrowDown = false;
+        arrowDownShown = false; // Reset flag when key is released
       } else if (evt.code === "ArrowLeft") {
         arrowLeft = false;
+        arrowLeftShown = false; // Reset flag when key is released
       } else if (evt.code === "ArrowRight") {
         arrowRight = false;
+        arrowRightShown = false; // Reset flag when key is released
+      } else if (evt.code === "Digit1") {
+        camFrontShown = false;
+      } else if (evt.code === "Digit2") {
+        camArmShown = false;
+      } else if (evt.code === "Digit3") {
+        camRearShown = false;
       }
     };
 
@@ -865,7 +854,7 @@ function Home() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []); // Add any dependencies here
+  }, []);
   useEffect(() => {
     if (!connected) {
       return;
@@ -1129,41 +1118,6 @@ function Home() {
     });
   };
 
-  const downloadImage = () => {
-    const date = new Date();
-    let name = `${date.getFullYear()}${date.getMonth()}${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}.jpg`;
-    // console.log(name);
-    const imgDataUrl = canvasRef.current.toDataURL("image/jpeg", 1);
-    fetch(imgDataUrl).then((r) => {
-      r.blob().then((blob) => {
-        // console.log(r);
-        saveAs(blob, name);
-      });
-    });
-    const imgReport = imgDataUrl.replace(/^data:image\/jpg;base64,/, "");
-    const tripInformation = JSON.parse(localStorage.getItem("tripInformation"));
-    const tripID = tripInformation.tripID;
-    const imgID = Math.floor(Math.random() * 1000000000);
-    const imgdata = [[imgID, imgReport, odometerValue]];
-    console.log("odom" + odometerValue);
-    const isImgSnapshotExists =
-      localStorage.getItem(`imgSnapshot_${tripID}`) !== null;
-    if (isImgSnapshotExists) {
-      const newdata = imgdata;
-
-      let existdata = [[]];
-      existdata = JSON.parse(localStorage.getItem(`imgSnapshot_${tripID}`)) || [
-        [],
-      ];
-      existdata.push(newdata[0]);
-      localStorage.setItem(`imgSnapshot_${tripID}`, JSON.stringify(existdata));
-
-      // console.log("imgsnapshot key exists.");
-    } else {
-      localStorage.setItem(`imgSnapshot_${tripID}`, JSON.stringify(imgdata));
-      // console.log("imgsnapshot key does not exist.");
-    }
-  };
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
     const aspectRatio = 16 / 10;
@@ -1284,7 +1238,8 @@ function Home() {
           </div>
         </>
       </div>
-      
+      <ToastContainer position="top-center" theme="dark" />
+
       <Modal className="flex justify-center w-60" open={modalVisible}>
         <Modal.Body>
           <div className="flex flex-col gap-1">
