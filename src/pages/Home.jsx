@@ -1242,6 +1242,7 @@ function Home() {
                 generateReportAccess={generateReportAccess}
                 canvasRef={canvasRef}
                 mediaRecorder={mediaRecorder}
+                odometerValue={odometerValue}
               />
               <LEDController
                 connected={connected}

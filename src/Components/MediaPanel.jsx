@@ -1,15 +1,40 @@
 import GeneratePDFButton from "../Components/GeneratePDFButton";
 import { Button } from "react-daisyui";
-
+import { useEffect } from "react";
 const MediaPanel = ({
   isRecording,
   setIsRecording,
   showBtnStartTrip,
   generateReportAccess,
   canvasRef,
-  mediaRecorder
+  mediaRecorder,
+  odometerValue
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (evt) => {
+      if (document.activeElement.tagName === "INPUT") {
+        return;
+      }
+      if (evt.code === "KeyJ") {
+        console.log("snapshot");
+        downloadImage()
+      } else if (evt.code === "KeyL") {
+        console.log("record");
+        if (!isRecording) {
+          setIsRecording(true);
+          mediaRecorder.start();
+        } else {
+          setIsRecording(false);
+          mediaRecorder.stop();
+        }
+      }
+    };
 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isRecording]);
   const downloadImage = () => {
     const date = new Date();
     let name = `${date.getFullYear()}${date.getMonth()}${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}.jpg`;
@@ -57,7 +82,7 @@ const MediaPanel = ({
   return (
     <div className="card bg-base-100 mt-4 ms-4">
       <div className="card-body">
-        <h2 className="card-title justify-center">Media Capture Menu</h2>
+        <h2 className="card-title justify-center">Media Capture</h2>
         <div className="mt-2 grid grid-row gap-2 ">
           <div className="grid grid-cols-2 gap-2">
             <button className="btn btn-neutral" onClick={downloadImage}>
