@@ -3,7 +3,6 @@ import * as ROSLIB from "roslib";
 
 const CleaningModule = ({ connected, setConnected }) => {
   const brushForward = useRef(null);
-  const brushReverse = useRef(null);
   const armUp = useRef(null);
   const armDown = useRef(null);
   const brushSpeed = useRef(null);
@@ -11,15 +10,12 @@ const CleaningModule = ({ connected, setConnected }) => {
     const saved = localStorage.getItem("brushStatus");
     return saved ? JSON.parse(saved) : false;
   });
-  const [rotationDirection, setRotationDirection] = useState(() => {
-    const saved = localStorage.getItem("rotationDirection");
-    return saved ? JSON.parse(saved) : "forward";
-  });
   const [speedValue, setSpeedValue] = useState(() => {
     const saved = localStorage.getItem("speedValue");
     return saved ? parseFloat(JSON.parse(saved)) : 0.1;
   });
   const ros = useRef(null);
+  const rotationDirection = "forward";
 
   useEffect(() => {
     if (!connected) {
@@ -33,11 +29,7 @@ const CleaningModule = ({ connected, setConnected }) => {
       name: "/brush/forward",
       messageType: "std_msgs/Bool",
     });
-    brushReverse.current = new ROSLIB.Topic({
-      ros: ros.current,
-      name: "/brush/reverse",
-      messageType: "std_msgs/Bool",
-    });
+
     brushSpeed.current = new ROSLIB.Topic({
       ros: ros.current,
       name: "/brush/speed",
@@ -73,10 +65,6 @@ const CleaningModule = ({ connected, setConnected }) => {
   }, [brushStatus]);
 
   useEffect(() => {
-    localStorage.setItem("rotationDirection", JSON.stringify(rotationDirection));
-  }, [rotationDirection]);
-
-  useEffect(() => {
     localStorage.setItem("speedValue", JSON.stringify(speedValue));
   }, [speedValue]);
 
@@ -97,11 +85,6 @@ const CleaningModule = ({ connected, setConnected }) => {
       if (rotationDirection === "forward" && brushForward.current) {
         console.log("forward starting");
         brushForward.current.publish(new ROSLIB.Message({ data: true }));
-        brushReverse.current.publish(new ROSLIB.Message({ data: false }));
-      } else if (rotationDirection === "reverse" && brushReverse.current) {
-        console.log("reverse starting");
-        brushReverse.current.publish(new ROSLIB.Message({ data: true }));
-        brushForward.current.publish(new ROSLIB.Message({ data: false }));
       }
       if (brushSpeed.current) {
         console.log("adjust brush speed");
@@ -110,9 +93,6 @@ const CleaningModule = ({ connected, setConnected }) => {
     } else {
       if (brushForward.current) {
         brushForward.current.publish(new ROSLIB.Message({ data: false }));
-      }
-      if (brushReverse.current) {
-        brushReverse.current.publish(new ROSLIB.Message({ data: false }));
       }
       if (brushSpeed.current) {
         brushSpeed.current.publish(new ROSLIB.Message({ data: 0.0 }));
@@ -141,9 +121,37 @@ const CleaningModule = ({ connected, setConnected }) => {
       } else if (evt.code === "KeyQ") {
         handleBrushSpin(!brushStatus);
         setBrushStatus(!brushStatus);
+      } else if (evt.code === "KeyA") {
+        // Decrease brush speed
+        setSpeedValue((prevSpeed) => {
+          if (prevSpeed <= 0.1) {
+            // Do nothing if speed is already at minimum
+            return prevSpeed;
+          }
+          const newSpeed = Math.max(0.1, prevSpeed - 0.1); // Decrease by 0.1, minimum 0.1
+          if (brushStatus && brushSpeed.current) {
+            brushSpeed.current.publish(new ROSLIB.Message({ data: newSpeed }));
+          }
+          console.log("Decrease brush speed");
+          return newSpeed;
+        });
+      } else if (evt.code === "KeyD") {
+        // Increase brush speed
+        setSpeedValue((prevSpeed) => {
+          if (prevSpeed >= 1.0) {
+            // Do nothing if speed is already at maximum
+            return prevSpeed;
+          }
+          const newSpeed = Math.min(1.0, prevSpeed + 0.1); // Increase by 0.1, maximum 1.0
+          if (brushStatus && brushSpeed.current) {
+            brushSpeed.current.publish(new ROSLIB.Message({ data: newSpeed }));
+          }
+          console.log("Increase brush speed");
+          return newSpeed;
+        });
       }
     };
-
+  
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -214,23 +222,6 @@ const CleaningModule = ({ connected, setConnected }) => {
           <span>0.1</span>
           <span>1.0</span>
         </div>
-        {/* <h3 className="text-center mt-1">Control Brush Rotation</h3>
-        <div className="w-full flex justify-center items-center">
-          <div className="tabs tabs-boxed w-fit flex justify-center items-center">
-            <a
-              className={`tab ${rotationDirection === "forward" ? "tab-active" : ""}`}
-              onClick={() => setRotationDirection("forward")}
-            >
-              Forward
-            </a>
-            <a
-              className={`tab ${rotationDirection === "reverse" ? "tab-active" : ""}`}
-              onClick={() => setRotationDirection("reverse")}
-            >
-              Reverse
-            </a>
-          </div>
-        </div> */}
         <h3 className="text-center mt-1">Control Brush Motor</h3>
         <div className="grid grid-cols-1 gap-2">
           {brushStatus ? (
