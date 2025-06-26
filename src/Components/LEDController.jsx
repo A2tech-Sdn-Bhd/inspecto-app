@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import * as ROSLIB from "roslib";
-
+import { toast } from "react-toastify";
 const LEDController = ({
   connected,
   ledControlBackPub,
@@ -41,12 +41,17 @@ const LEDController = ({
   };
 
   useEffect(() => {
+    let decreaseIntensityShown = false;
+    let increaseIntensityShown = false;
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
         return;
       }
       if (evt.code === "KeyZ") {
         // Decrease intensity
+        decreaseIntensityShown = true;
+        toast.dismiss();
+        toast.info("Decrease intensity");
         setIntensity((prevIntensity) => {
           if (prevIntensity <= 0) {
             // Do nothing if intensity is already at minimum
@@ -60,6 +65,9 @@ const LEDController = ({
         });
       } else if (evt.code === "KeyC") {
         // Increase intensity
+        increaseIntensityShown = true;
+        toast.dismiss();
+        toast.info("increase intensity");
         setIntensity((prevIntensity) => {
           if (prevIntensity >= 100) {
             // Do nothing if intensity is already at maximum
@@ -73,10 +81,18 @@ const LEDController = ({
         });
       }
     };
-
+    const handleKeyUp = (evt) => {
+      if (evt.code === "KeyZ") {
+        decreaseIntensityShown = false;
+      } else if (evt.code === "KeyC") {
+        increaseIntensityShown = false;
+      }
+    };
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
 
