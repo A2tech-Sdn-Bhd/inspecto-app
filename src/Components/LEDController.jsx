@@ -47,7 +47,7 @@ const LEDController = ({
       if (document.activeElement.tagName === "INPUT") {
         return;
       }
-      if (evt.code === "KeyZ") {
+      if (evt.code === "KeyZ" && !decreaseIntensityShown) {
         // Decrease intensity
         decreaseIntensityShown = true;
         toast.dismiss();
@@ -63,7 +63,7 @@ const LEDController = ({
           console.log("Decrease intensity");
           return newIntensity;
         });
-      } else if (evt.code === "KeyC") {
+      } else if (evt.code === "KeyC" && !increaseIntensityShown) {
         // Increase intensity
         increaseIntensityShown = true;
         toast.dismiss();

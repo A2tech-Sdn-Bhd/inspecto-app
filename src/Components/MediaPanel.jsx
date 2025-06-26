@@ -1,4 +1,5 @@
 import GeneratePDFButton from "../Components/GeneratePDFButton";
+import { toast } from "react-toastify";
 import { Button } from "react-daisyui";
 import { useEffect } from "react";
 const MediaPanel = ({
@@ -8,33 +9,52 @@ const MediaPanel = ({
   generateReportAccess,
   canvasRef,
   mediaRecorder,
-  odometerValue
+  odometerValue,
 }) => {
   useEffect(() => {
+    let snapshotShown = false;
+    let recordShown = false;
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
         return;
       }
-      if (evt.code === "KeyJ") {
-        console.log("snapshot");
-        downloadImage()
-      } else if (evt.code === "KeyL") {
-        console.log("record");
+      if (evt.code === "KeyJ" && !snapshotShown) {
+        downloadImage();
+        snapshotShown = true;
+        toast.dismiss();
+        toast.info("Snapshot");
+      } else if (evt.code === "KeyL" && !recordShown) {
+        recordShown = true;
+
         if (!isRecording) {
           setIsRecording(true);
-          mediaRecorder.start();
+          mediaRecorder.start(1000);
+          toast.dismiss();
+          toast.info("Start Record");
         } else {
           setIsRecording(false);
           mediaRecorder.stop();
+          toast.dismiss();
+          toast.info("stop Record");
         }
+      }
+    };
+    const handleKeyUp = (evt) => {
+      if (evt.code === "KeyJ") {
+        snapshotShown = false;
+      } else if (evt.code === "KeyL") {
+        recordShown = false;
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, [isRecording]);
+
   const downloadImage = () => {
     const date = new Date();
     let name = `${date.getFullYear()}${date.getMonth()}${date.getDate()}${date.getHours()}${date.getMinutes()}${date.getSeconds()}.jpg`;
@@ -93,7 +113,7 @@ const MediaPanel = ({
               onClick={() => {
                 if (!isRecording) {
                   setIsRecording(true);
-                  mediaRecorder.start();
+                  mediaRecorder.start(1000);
                 } else {
                   setIsRecording(false);
                   mediaRecorder.stop();
