@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import * as ROSLIB from "roslib";
-
+import { toast } from "react-toastify";
 const CleaningModule = ({ connected, setConnected }) => {
   const brushForward = useRef(null);
   const armUp = useRef(null);
@@ -110,18 +110,40 @@ const CleaningModule = ({ connected, setConnected }) => {
   };
 
   useEffect(() => {
+    let brushArmUpShown = false;
+    let brushArmDownShown = false;
+    let brushSpinShown = false;
+    let brushDecreaseSpeedShown = false;
+    let brushIncreaseSpeedShown = false;
+
     const handleKeyDown = (evt) => {
       if (document.activeElement.tagName === "INPUT") {
         return;
       }
-      if (evt.code === "KeyF") {
+      if (evt.code === "KeyF" && !brushArmUpShown) {
+        brushArmUpShown = true;
+        toast.dismiss();
+        toast.info("Brush arm up");
         handleBrushArmUp(true);
-      } else if (evt.code === "KeyV") {
+      } else if (evt.code === "KeyV" && !brushArmDownShown) {
+        brushArmDownShown = true;
+        toast.dismiss();
+        toast.info("Brush arm down");
         handleBrushArmDown(true);
-      } else if (evt.code === "KeyQ") {
+      } else if (evt.code === "KeyQ" && !brushSpinShown) {
+        brushSpinShown = true;
+        toast.dismiss();
+        if (brushStatus) {
+          toast.info("Brush spin off");
+        } else {
+          toast.info("Brush spin on");
+        }
         handleBrushSpin(!brushStatus);
         setBrushStatus(!brushStatus);
-      } else if (evt.code === "KeyA") {
+      } else if (evt.code === "KeyA" && !brushDecreaseSpeedShown) {
+        brushDecreaseSpeedShown = true;
+        toast.dismiss();
+        toast.info("Brush speed decrease");
         // Decrease brush speed
         setSpeedValue((prevSpeed) => {
           if (prevSpeed <= 0.1) {
@@ -135,8 +157,11 @@ const CleaningModule = ({ connected, setConnected }) => {
           console.log("Decrease brush speed");
           return newSpeed;
         });
-      } else if (evt.code === "KeyD") {
+      } else if (evt.code === "KeyD" && !brushIncreaseSpeedShown) {
+        brushIncreaseSpeedShown = true;
         // Increase brush speed
+        toast.dismiss();
+        toast.info("Brush speed increase");
         setSpeedValue((prevSpeed) => {
           if (prevSpeed >= 1.0) {
             // Do nothing if speed is already at maximum
@@ -151,30 +176,30 @@ const CleaningModule = ({ connected, setConnected }) => {
         });
       }
     };
-  
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [brushStatus]);
 
-  useEffect(() => {
     const handleKeyUp = (evt) => {
-      if (document.activeElement.tagName === "INPUT") {
-        return;
-      }
       if (evt.code === "KeyF") {
+        brushArmUpShown = false;
         handleBrushArmUp(false);
       } else if (evt.code === "KeyV") {
+        brushArmDownShown = false;
         handleBrushArmDown(false);
+      } else if (evt.code === "KeyQ") {
+        brushSpinShown = false;
+      } else if (evt.code === "KeyA") {
+        brushDecreaseSpeedShown = false;
+      } else if (evt.code === "KeyD") {
+        brushIncreaseSpeedShown = false;
       }
     };
 
+    window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
+      window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [brushStatus]);
 
   return (
     <div className="card bg-base-100 me-4">
