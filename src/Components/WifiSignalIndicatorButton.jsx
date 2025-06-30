@@ -1,4 +1,6 @@
 import { BsWifi1, BsWifi2, BsWifi } from "react-icons/bs";
+import { MdOutlineSignalCellularAlt,MdOutlineSignalCellularAlt1Bar,MdOutlineSignalCellularAlt2Bar } from "react-icons/md";
+
 import { useState } from "react";
 const WifiSignalIndicatorButton = () => {
   const [wifiStrength, setWifiStrength] = useState(3);
@@ -32,15 +34,15 @@ const WifiSignalIndicatorButton = () => {
         ></span>
         {wifiStrength == 1 ? (
           <button className="btn btn-neutral">
-            <BsWifi1 color="oklch(57.7% 0.245 27.325)" size={30} />
+            <MdOutlineSignalCellularAlt1Bar color="oklch(57.7% 0.245 27.325)" size={30} />
           </button>
         ) : wifiStrength == 2 ? (
           <button className="btn btn-neutral">
-            <BsWifi2 color="oklch(66.6% 0.179 58.318)" size={30} />
+            <MdOutlineSignalCellularAlt2Bar color="oklch(66.6% 0.179 58.318)" size={30} />
           </button>
         ) : (
           <button className="btn btn-neutral">
-            <BsWifi color="oklch(64.8% 0.2 131.684)" size={30} />
+            <MdOutlineSignalCellularAlt color="oklch(64.8% 0.2 131.684)" size={30} />
           </button>
         )}
       </div>
@@ -60,18 +62,18 @@ const WifiSignalIndicatorButton = () => {
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
                   <div className="flex items-center space-x-3">
                     {wifiStrength == 1 ? (
-                      <BsWifi1
-                        className={`h-5 w-5 `}
+                      <MdOutlineSignalCellularAlt1Bar
+                        className={`h-10 w-10 `}
                         color="oklch(57.7% 0.245 27.325)"
                       />
                     ) : wifiStrength == 2 ? (
-                      <BsWifi2
-                        className={`h-5 w-5 `}
+                      <MdOutlineSignalCellularAlt2Bar
+                        className={`h-10 w-10 `}
                         color="oklch(66.6% 0.179 58.318)"
                       />
                     ) : (
-                      <BsWifi
-                        className={`h-5 w-5 `}
+                      <MdOutlineSignalCellularAlt
+                        className={`h-10 w-10 `}
                         color="oklch(64.8% 0.2 131.684)"
                       />
                     )}
