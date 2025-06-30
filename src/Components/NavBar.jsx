@@ -4,6 +4,7 @@ import { BsJoystick, BsFillKeyboardFill } from "react-icons/bs";
 import ReportForm from "../Components/ReportForm";
 import WifiSignalIndicatorButton from "./WifiSignalIndicatorButton";
 import { BiJoystickButton } from "react-icons/bi";
+import { MdFullscreen } from "react-icons/md";
 
 const NavBar = ({
   connected,
@@ -42,7 +43,7 @@ const NavBar = ({
               <div className="flex gap-1">
                 <h1 className="font-semibold text-2xl">Status:</h1>
                 <h1 className="font-semibold text-lime-400 text-2xl">
-                System On
+                  System On
                 </h1>
               </div>
             ) : (
@@ -64,9 +65,14 @@ const NavBar = ({
         </div>
 
         <div className="flex h-full items-center gap-4">
-          <WifiSignalIndicatorButton/>
+
+          <WifiSignalIndicatorButton />
+          <button className="btn btn-neutral tooltip tooltip-bottom " data-tip="toggle fullscreen">
+            <MdFullscreen color="white" size={30} />
+          </button>
+
           <button
-            className="btn tooltip tooltip-left btn-neutral"
+            className="btn tooltip tooltip-bottom btn-neutral"
             data-tip="show keyboard shortcuts"
             onClick={() =>
               document.getElementById("keyboard_shortcut_modal").showModal()
@@ -76,7 +82,7 @@ const NavBar = ({
           </button>
 
           <button
-            className="btn tooltip tooltip-left btn-neutral"
+            className="btn tooltip tooltip-bottom btn-neutral"
             data-tip="show keyboard shortcuts"
             onClick={() =>
               document.getElementById("steamdeck_shortcut_modal").showModal()
@@ -85,7 +91,7 @@ const NavBar = ({
             <BiJoystickButton color="white" size={30}></BiJoystickButton>
           </button>
           <button
-            className="btn tooltip tooltip-left btn-neutral"
+            className="btn tooltip tooltip-bottom btn-neutral"
             data-tip="show joystick"
             onClick={() => {
               setShowJoystick(!showJoystick);
