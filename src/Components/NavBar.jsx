@@ -4,7 +4,8 @@ import { BsJoystick, BsFillKeyboardFill } from "react-icons/bs";
 import ReportForm from "../Components/ReportForm";
 import WifiSignalIndicatorButton from "./WifiSignalIndicatorButton";
 import { BiJoystickButton } from "react-icons/bi";
-import { MdFullscreen } from "react-icons/md";
+
+import BtnFullscreen from "./BtnFullscreen"
 
 const NavBar = ({
   connected,
@@ -67,9 +68,9 @@ const NavBar = ({
         <div className="flex h-full items-center gap-4">
 
           <WifiSignalIndicatorButton />
-          <button className="btn btn-neutral tooltip tooltip-bottom " data-tip="toggle fullscreen">
-            <MdFullscreen color="white" size={30} />
-          </button>
+          {/* <BtnFullscreen/> */}
+          <BtnFullscreen></BtnFullscreen>
+          
 
           <button
             className="btn tooltip tooltip-bottom btn-neutral"
