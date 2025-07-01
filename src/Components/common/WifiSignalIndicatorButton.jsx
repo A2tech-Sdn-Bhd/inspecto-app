@@ -53,7 +53,8 @@ const WifiSignalIndicatorButton = () => {
   return (
     <>
       <div
-        className="indicator"
+        className="indicator tooltip tooltip-bottom"
+        data-tip="WiFi Signal Strength"
         onClick={() => {
           toggleWifiPopup();
         }}
