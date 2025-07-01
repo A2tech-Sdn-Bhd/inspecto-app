@@ -47,7 +47,7 @@ const NavBar = ({
                 <h1 className="font-semibold text-2xl">Status:</h1>
                 <h1 className="font-semibold text-lime-400 text-2xl">
                   System On
-                </h1>fullscreenRef={fullscreenRef}
+                </h1>
               </div>
             ) : (
               <div className="flex gap-1">

@@ -1,6 +1,10 @@
 import { MdFullscreen } from "react-icons/md";
+import { BiExitFullscreen } from "react-icons/bi";
+import { useState } from "react";
 
 const BtnFullscreen = ({ fullscreenRef }) => {
+
+    const [enterFullscreen, setEnterFullscreen] = useState(false);
   const toggleFullscreen = () => {
     console.log("toggleFullscreen called", fullscreenRef.current); // Debug: Check if function runs and ref is defined
 
@@ -19,16 +23,20 @@ const BtnFullscreen = ({ fullscreenRef }) => {
           fullscreenRef.current.msRequestFullscreen; // IE/Edge
 
         if (requestFullscreen) {
+        setEnterFullscreen(true)
+
           requestFullscreen.call(fullscreenRef.current).catch((err) => {
             console.error(`Error entering fullscreen: ${err.message}`);
           });
         } else {
+            
           console.error("Fullscreen API is not supported in this browser");
         }
       } catch (err) {
         console.error(`Fullscreen request failed: ${err.message}`);
       }
     } else {
+        setEnterFullscreen(false)
       // Exit fullscreen
       try {
         const exitFullscreen =
@@ -57,7 +65,9 @@ const BtnFullscreen = ({ fullscreenRef }) => {
       data-tip="Toggle Fullscreen"
       onClick={toggleFullscreen}
     >
-      <MdFullscreen color="white" size={30} />
+    {!enterFullscreen?(<MdFullscreen color="white" size={30} />): ( <BiExitFullscreen color="white" size={30} />)}
+      
+     
     </button>
   );
 };
