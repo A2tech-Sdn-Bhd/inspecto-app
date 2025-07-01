@@ -1,6 +1,5 @@
-import GeneratePDFButton from "../Components/GeneratePDFButton";
+import GeneratePDFButton from "../common/GeneratePDFButton";
 import { toast } from "react-toastify";
-import { Button } from "react-daisyui";
 import { useEffect } from "react";
 const MediaPanel = ({
   isRecording,

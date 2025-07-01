@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import logo from "../assets/a2tech.png";
+import logo from "../assets/images/a2tech.png";
 import { useCookies } from "react-cookie";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 

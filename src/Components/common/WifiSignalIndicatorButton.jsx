@@ -1,7 +1,7 @@
 import { BsWifi1, BsWifi2, BsWifi } from "react-icons/bs";
 import { MdOutlineSignalCellularAlt,MdOutlineSignalCellularAlt1Bar,MdOutlineSignalCellularAlt2Bar } from "react-icons/md";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const WifiSignalIndicatorButton = () => {
   const [wifiStrength, setWifiStrength] = useState(3);
   const [showWifiIndicator, setShowWifiIndicator] = useState(false);
@@ -15,6 +15,7 @@ const WifiSignalIndicatorButton = () => {
   const toggleWifiPopup = () => {
     setShowWifiIndicator(!showWifiIndicator);
   };
+
   return (
     <>
       <div

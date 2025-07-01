@@ -1,3 +1,0 @@
-1. make component responsive for screen 1280x660
-2. add button for fullscreen
-3. add wifi strength indicator

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import LEDController from "../Components/LEDController";
-import VideoStreamPanel from "../Components/VideoStreamPanel";
+import LEDController from "../Components/features/LEDController";
+import VideoStreamPanel from "../Components/ui/VideoStreamPanel";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import axios from "axios";
@@ -12,13 +12,13 @@ const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import { saveAs } from "file-saver";
 import { Modal } from "react-daisyui";
 import { GoAlert } from "react-icons/go";
-import "../App.css";
-import CleaningModule from "../Components/CleaningModule";
-import ReportForm from "../Components/ReportForm";
-import ListCameraCard from "../Components/ListCameraCard";
-import OdometerPanel from "../Components/OdometerPanel";
-import NavBar from "../Components/NavBar";
-import MediaPanel from "../Components/MediaPanel";
+import "../styles/App.css";
+import CleaningModule from "../Components/features/CleaningModule";
+import ReportForm from "../Components/features/ReportForm";
+import ListCameraCard from "../Components/ui/ListCameraCard";
+import OdometerPanel from "../Components/ui/OdometerPanel";
+import NavBar from "../Components/common/NavBar";
+import MediaPanel from "../Components/ui/MediaPanel";
 const maxLinear = 0.25;
 const maxAngular = 1.5;
 let twist = new ROSLIB.Message({
@@ -86,6 +86,7 @@ function Home() {
   const resetOdomPub = useRef(null);
   const ledControlFrontPub = useRef(null);
   const ledControlBackPub = useRef(null);
+  const fullscreenRef = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
@@ -1070,44 +1071,7 @@ function Home() {
     setIntervalId(newIntervalId);
   };
 
-  const shutdownInspecto = () => {
-    let date = new Date();
-    date = date.toLocaleString();
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to shutdown the Inspecto?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        removeCookie("token_app", "");
-        clearLocalStorageLogout();
-        axios.get(`${API_URL}/shutdown`, {
-          date: date,
-        });
-      }
-    });
-  };
-  const restartService = () => {
-    let date = new Date();
-    date = date.toLocaleString();
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to restart the service?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios.get(`${API_URL}/restart`, {
-          date: date,
-        });
-      }
-    });
-  };
+  
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current;
@@ -1143,6 +1107,7 @@ function Home() {
 
   return (
     <div
+    ref={fullscreenRef}
       className="w-screen h-screen bg-slate-800 overflow-hidden"
       onContextMenu={(e) => {
         e.preventDefault();
@@ -1157,8 +1122,6 @@ function Home() {
           temperature={temperature}
           showBtnStartTrip={showBtnStartTrip}
           showBtnEndTrip={showBtnEndTrip}
-          restartService={restartService}
-          shutdownInspecto={shutdownInspecto}
           showForm={showForm}
           setShowForm={setShowForm}
           tripNamePrevious={tripNamePrevious}
@@ -1175,6 +1138,7 @@ function Home() {
           startTrip={startTrip}
           showJoystick={showJoystick}
           ros={ros}
+          fullscreenRef={fullscreenRef}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-4">
