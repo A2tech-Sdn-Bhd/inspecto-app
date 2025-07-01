@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import logo from "../assets/a2tech.png";
 import { BsJoystick, BsFillKeyboardFill } from "react-icons/bs";
 import ReportForm from "../Components/ReportForm";
@@ -31,9 +31,11 @@ const NavBar = ({
   endTrip,
   startTrip,
   showJoystick,
+  fullscreenRef,
 }) => {
+
   return (
-    <div>
+    <div >
       <div className="flex bg-slate-500 w-full h-14 justify-between px-3">
         <div className="flex h-full items-center gap-8">
           <div className="h-full">
@@ -45,7 +47,7 @@ const NavBar = ({
                 <h1 className="font-semibold text-2xl">Status:</h1>
                 <h1 className="font-semibold text-lime-400 text-2xl">
                   System On
-                </h1>
+                </h1>fullscreenRef={fullscreenRef}
               </div>
             ) : (
               <div className="flex gap-1">
@@ -68,8 +70,7 @@ const NavBar = ({
         <div className="flex h-full items-center gap-4">
 
           <WifiSignalIndicatorButton />
-          {/* <BtnFullscreen/> */}
-          <BtnFullscreen></BtnFullscreen>
+          <BtnFullscreen fullscreenRef={fullscreenRef}/>
           
 
           <button

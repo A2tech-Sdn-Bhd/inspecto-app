@@ -86,6 +86,7 @@ function Home() {
   const resetOdomPub = useRef(null);
   const ledControlFrontPub = useRef(null);
   const ledControlBackPub = useRef(null);
+  const fullscreenRef = useRef(null);
 
   const [cam, setCam] = useState(1);
   const [url, setUrl] = useState("");
@@ -1140,9 +1141,10 @@ function Home() {
       return () => window.removeEventListener("resize", resizeCanvas);
     }, []);
   };
-
+    
   return (
     <div
+      ref={fullscreenRef}
       className="w-screen h-screen bg-slate-800 overflow-hidden"
       onContextMenu={(e) => {
         e.preventDefault();
@@ -1175,6 +1177,7 @@ function Home() {
           startTrip={startTrip}
           showJoystick={showJoystick}
           ros={ros}
+          fullscreenRef={fullscreenRef}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-4">
