@@ -1,5 +1,9 @@
 import { BsWifi1, BsWifi2, BsWifi } from "react-icons/bs";
-import { MdOutlineSignalCellularAlt,MdOutlineSignalCellularAlt1Bar,MdOutlineSignalCellularAlt2Bar } from "react-icons/md";
+import {
+  MdOutlineSignalCellularAlt,
+  MdOutlineSignalCellularAlt1Bar,
+  MdOutlineSignalCellularAlt2Bar,
+} from "react-icons/md";
 
 import { useEffect, useState } from "react";
 const WifiSignalIndicatorButton = () => {
@@ -15,6 +19,36 @@ const WifiSignalIndicatorButton = () => {
   const toggleWifiPopup = () => {
     setShowWifiIndicator(!showWifiIndicator);
   };
+
+  useEffect(() => {
+    try {
+      const websocket = new WebSocket("ws://localhost:8890");
+      websocket.onopen = () => {
+        console.log("connected to websocket server");
+      };
+      websocket.onmessage = (event) => {
+        const wifiMetrics = JSON.parse(event.data)["wifiMetrics"];
+        setSsid(wifiMetrics["SSID"]);
+        setFrequency(wifiMetrics["frequency"]);
+        setBitRate(wifiMetrics["bitRate"]);
+        setTxPower(wifiMetrics["txPower"]);
+        setLinkQuality(wifiMetrics["linkQuality"]);
+        const signalStr = wifiMetrics["signalLevel"];
+        const signalValue =
+          typeof signalStr === "string"
+            ? parseInt(signalStr.replace(/[^-\d]/g, ""), 10)
+            : signalStr;
+        setSignalStrength(signalValue);
+        if (signalValue >= -50) {
+          setWifiStrength(3); // Great signal
+        } else if (signalValue >= -70) {
+          setWifiStrength(2); // Good signal
+        } else {
+          setWifiStrength(1); // Weak signal
+        }
+      };
+    } catch (error) {}
+  }, []);
 
   return (
     <>
@@ -35,15 +69,24 @@ const WifiSignalIndicatorButton = () => {
         ></span>
         {wifiStrength == 1 ? (
           <button className="btn btn-neutral">
-            <MdOutlineSignalCellularAlt1Bar color="oklch(57.7% 0.245 27.325)" size={30} />
+            <MdOutlineSignalCellularAlt1Bar
+              color="oklch(57.7% 0.245 27.325)"
+              size={30}
+            />
           </button>
         ) : wifiStrength == 2 ? (
           <button className="btn btn-neutral">
-            <MdOutlineSignalCellularAlt2Bar color="oklch(66.6% 0.179 58.318)" size={30} />
+            <MdOutlineSignalCellularAlt2Bar
+              color="oklch(66.6% 0.179 58.318)"
+              size={30}
+            />
           </button>
         ) : (
           <button className="btn btn-neutral">
-            <MdOutlineSignalCellularAlt color="oklch(64.8% 0.2 131.684)" size={30} />
+            <MdOutlineSignalCellularAlt
+              color="oklch(64.8% 0.2 131.684)"
+              size={30}
+            />
           </button>
         )}
       </div>
@@ -80,7 +123,7 @@ const WifiSignalIndicatorButton = () => {
                     )}
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        Inspecto router
+                        {ssid || "Unknown SSID"}
                       </h3>
                       <p className="text-sm text-gray-500 capitalize">
                         {wifiStrength == 1
@@ -130,7 +173,7 @@ const WifiSignalIndicatorButton = () => {
                         Frequency
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {frequency} GHz
+                        {frequency}
                       </p>
                     </div>
                     <div className="space-y-1">
@@ -138,7 +181,7 @@ const WifiSignalIndicatorButton = () => {
                         Bit Rate
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {bitRate} Mb/s
+                        {bitRate}
                       </p>
                     </div>
                     <div className="space-y-1">
@@ -146,7 +189,7 @@ const WifiSignalIndicatorButton = () => {
                         TX Power
                       </p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {txPower} dBm
+                        {txPower}
                       </p>
                     </div>
                     <div className="space-y-1">
