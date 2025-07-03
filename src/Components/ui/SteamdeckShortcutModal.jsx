@@ -17,7 +17,7 @@ const SteamdeckShortcutModal = () => {
             <h3 className="font-bold text-lg text-center mb-5">
               Steam Deck Shortcut
             </h3>
-            <img src="./public/shortcut.png" alt="" />
+            <img src="./shortcut.png" alt="" />
           </div>
         </div>
         <form method="dialog" className="modal-backdrop">

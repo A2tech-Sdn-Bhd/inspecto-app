@@ -1,43 +1,54 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // Add useRef
 import * as ROSLIB from "roslib";
 import { toast } from "react-toastify";
+
 const LEDController = ({
   connected,
   ledControlBackPub,
   ledControlFrontPub,
 }) => {
   const [intensity, setIntensity] = useState(() => {
-    // Get initial value from localStorage or default to 25
     const saved = localStorage.getItem("ledIntensity");
     return saved !== null ? parseInt(saved) : 25;
   });
 
-  // Publish intensity to ROS topics
-  const publishIntensity = (value) => {
-    if (!connected) {
-      return;
-    }
-    const floatValue = value / 100;
-    const message = new ROSLIB.Message({
-      data: floatValue,
-    });
-    ledControlFrontPub.current.publish(message);
-    ledControlBackPub.current.publish(message);
-  };
+  // Use refs to store the latest publishIntensity and connected values
+  const publishIntensityRef = useRef();
+  const connectedRef = useRef(connected);
+
+  // Update refs when connected or pubs change
+  useEffect(() => {
+    connectedRef.current = connected;
+  }, [connected]);
+
+  // Update publishIntensity function when dependencies change
+  useEffect(() => {
+    publishIntensityRef.current = (value) => {
+      if (!connectedRef.current) {
+        return;
+      }
+      const floatValue = value / 100;
+      const message = new ROSLIB.Message({
+        data: floatValue,
+      });
+      ledControlFrontPub.current.publish(message);
+      ledControlBackPub.current.publish(message);
+    };
+  }, [ledControlFrontPub, ledControlBackPub]);
 
   // Initialize with stored value
   useEffect(() => {
     if (!connected) {
       return;
     }
-    publishIntensity(intensity);
+    publishIntensityRef.current(intensity);
   }, []); // Empty dependency array for mount only
 
   const handleIntensityChange = (event) => {
     const value = parseInt(event.target.value);
     setIntensity(value);
     localStorage.setItem("ledIntensity", value.toString());
-    publishIntensity(value);
+    publishIntensityRef.current(value);
   };
 
   useEffect(() => {
@@ -48,34 +59,30 @@ const LEDController = ({
         return;
       }
       if (evt.code === "KeyZ" && !decreaseIntensityShown) {
-        // Decrease intensity
         decreaseIntensityShown = true;
         toast.dismiss();
         toast.info("Decrease intensity");
         setIntensity((prevIntensity) => {
           if (prevIntensity <= 0) {
-            // Do nothing if intensity is already at minimum
             return prevIntensity;
           }
-          const newIntensity = Math.max(0, prevIntensity - 10); // Decrease by 10, minimum 0
+          const newIntensity = Math.max(0, prevIntensity - 10);
           localStorage.setItem("ledIntensity", newIntensity.toString());
-          publishIntensity(newIntensity);
+          publishIntensityRef.current(newIntensity);
           console.log("Decrease intensity");
           return newIntensity;
         });
       } else if (evt.code === "KeyC" && !increaseIntensityShown) {
-        // Increase intensity
         increaseIntensityShown = true;
         toast.dismiss();
-        toast.info("increase intensity");
+        toast.info("Increase intensity");
         setIntensity((prevIntensity) => {
           if (prevIntensity >= 100) {
-            // Do nothing if intensity is already at maximum
             return prevIntensity;
           }
-          const newIntensity = Math.min(100, prevIntensity + 10); // Increase by 10, maximum 100
+          const newIntensity = Math.min(100, prevIntensity + 10);
           localStorage.setItem("ledIntensity", newIntensity.toString());
-          publishIntensity(newIntensity);
+          publishIntensityRef.current(newIntensity);
           console.log("Increase intensity");
           return newIntensity;
         });
@@ -94,7 +101,7 @@ const LEDController = ({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, []); // Empty dependency array is fine here
 
   return (
     <div className="card bg-base-100 ms-4 mt-4 card-compact relative z-10">

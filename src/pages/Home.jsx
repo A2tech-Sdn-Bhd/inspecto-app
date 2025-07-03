@@ -510,7 +510,7 @@ function Home() {
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -523,7 +523,7 @@ function Home() {
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowDown) {
@@ -564,7 +564,7 @@ function Home() {
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: -maxAngular,
+                z: maxAngular,
               },
             });
           } else if (arrowRight) {
@@ -577,7 +577,7 @@ function Home() {
               angular: {
                 x: 0.0,
                 y: 0.0,
-                z: maxAngular,
+                z: -maxAngular,
               },
             });
           } else {
@@ -604,7 +604,7 @@ function Home() {
             angular: {
               x: 0.0,
               y: 0.0,
-              z: maxAngular,
+              z: -maxAngular,
             },
           });
         } else if (arrowRight) {
@@ -617,7 +617,7 @@ function Home() {
             angular: {
               x: 0.0,
               y: 0.0,
-              z: -maxAngular,
+              z: maxAngular,
             },
           });
         }
@@ -676,7 +676,7 @@ function Home() {
             x: 0.0,
             y: 0.0,
             z: getScaledValue(
-              -gamepads[0].axes[0],
+              gamepads[0].axes[0],
               -1,
               1,
               maxAngular,
@@ -686,7 +686,7 @@ function Home() {
         });
         if (gamepads[0].axes[2] > 0.005 || gamepads[0].axes[2] < -0.005) {
           joyTwist.angular.z = getScaledValue(
-            gamepads[0].axes[2],
+            -gamepads[0].axes[2],
             -1,
             1,
             maxAngular,
@@ -1024,7 +1024,7 @@ function Home() {
       angular: {
         x: 0.0,
         y: 0.0,
-        z: getScaledValue(evt.x, -1, 1, maxAngular, -maxAngular),
+        z: getScaledValue(-evt.x, -1, 1, -maxAngular, maxAngular),
       },
     });
   };
