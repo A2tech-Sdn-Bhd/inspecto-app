@@ -20,7 +20,7 @@ import OdometerPanel from "../Components/ui/OdometerPanel";
 import NavBar from "../Components/common/NavBar";
 import MediaPanel from "../Components/ui/MediaPanel";
 const maxLinear = 0.25;
-const maxAngular = 1.5;
+const maxAngular = 0.7;
 let twist = new ROSLIB.Message({
   linear: {
     x: 0.0,
@@ -458,7 +458,7 @@ function Home() {
             const textWidth = context.measureText(text).width;
             context.fillText(text, cw - textWidth - 10, 30);
           } else if (cam === 2) {
-            const text = "Front Camera";
+            const text = "Arm Camera";
             const textWidth = context.measureText(text).width;
             context.fillText(text, cw - textWidth - 10, 30);
           } else if (cam === 3) {
@@ -1024,7 +1024,7 @@ function Home() {
       angular: {
         x: 0.0,
         y: 0.0,
-        z: getScaledValue(-evt.x, -1, 1, -maxAngular, maxAngular),
+        z: getScaledValue(evt.x, -1, 1, -maxAngular, maxAngular),
       },
     });
   };

@@ -54,7 +54,7 @@ const KeyboardShortcutModal = () => {
                         <kbd className="kbd text-black">Q</kbd>
                       </div>
                     </td>
-                    <td className="text-center">Start brush</td>
+                    <td className="text-center">Start/Stop brush</td>
                   </tr>
                   <tr>
                     <td>
