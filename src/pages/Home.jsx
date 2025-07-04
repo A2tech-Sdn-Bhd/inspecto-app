@@ -41,7 +41,7 @@ let arrowDown = false;
 let arrowLeft = false;
 let arrowRight = false;
 
-let mediaRecorder = null;
+
 let videoStream = null;
 let chunks = [];
 
@@ -104,6 +104,7 @@ function Home() {
   const location = useLocation();
   const [generateReportAccess, setGenerateReportAccess] = useState(false);
   const [handleUseButton, setHandleUseButton] = useState(false);
+  const mediaRecorderRef = useRef(null); // Store mediaRecorder in a ref
 
   const [geninput, setgeninput] = useState({
     n: "",
@@ -337,17 +338,20 @@ function Home() {
       }
     });
   }, []);
+
   useEffect(() => {
     videoStream = canvasRef.current.captureStream(30);
-    mediaRecorder = new MediaRecorder(videoStream, {
+    console.log("videoStream",videoStream);
+    
+    mediaRecorderRef.current = new MediaRecorder(videoStream, {
       videoBitsPerSecond: 5000000,
       mimeType: "video/webm;codecs=vp9",
     });
 
-    mediaRecorder.ondataavailable = (e) => {
+    mediaRecorderRef.current.ondataavailable = (e) => {
       chunks.push(e.data);
     };
-    mediaRecorder.onstop = function (e) {
+    mediaRecorderRef.current.onstop = function (e) {
       const blob = new Blob(chunks, { type: "video/webm" });
       chunks = [];
       saveAs(blob, "video.webm");
@@ -1150,7 +1154,7 @@ function Home() {
                 showBtnStartTrip={showBtnStartTrip}
                 generateReportAccess={generateReportAccess}
                 canvasRef={canvasRef}
-                mediaRecorder={mediaRecorder}
+                mediaRecorderRef={mediaRecorderRef}
                 odometerValue={odometerValue}
               />
               <LEDController

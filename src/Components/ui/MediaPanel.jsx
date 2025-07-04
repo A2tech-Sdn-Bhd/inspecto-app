@@ -7,7 +7,7 @@ const MediaPanel = ({
   showBtnStartTrip,
   generateReportAccess,
   canvasRef,
-  mediaRecorder,
+  mediaRecorderRef,
   odometerValue,
 }) => {
   useEffect(() => {
@@ -27,12 +27,12 @@ const MediaPanel = ({
 
         if (!isRecording) {
           setIsRecording(true);
-          mediaRecorder.start(1000);
+          mediaRecorderRef.current.start(1000);
           toast.dismiss();
           toast.info("Start Record");
         } else {
           setIsRecording(false);
-          mediaRecorder.stop();
+          mediaRecorderRef.current.stop();
           toast.dismiss();
           toast.info("stop Record");
         }
@@ -112,7 +112,7 @@ const MediaPanel = ({
                 className="btn btn-neutral btn-sm"
                 onClick={() => {
                   setIsRecording(true);
-                  mediaRecorder.start(1000);
+                  mediaRecorderRef.current.start(1000);
                 }}
               >
                 {"Record"}
@@ -122,7 +122,7 @@ const MediaPanel = ({
                 className="btn btn-error btn-sm"
                 onClick={() => {
                   setIsRecording(false);
-                  mediaRecorder.stop();
+                  mediaRecorderRef.current.stop();
                 }}
               >
                 {"Record"}
