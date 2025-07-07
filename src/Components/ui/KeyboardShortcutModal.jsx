@@ -1,7 +1,7 @@
 import { BsFillKeyboardFill } from "react-icons/bs";
 const KeyboardShortcutModal = () => {
   return (
-    <div>
+    <div className="flex items-center justify-center">
       <button
         className="btn tooltip tooltip-left btn-neutral"
         data-tip="show keyboard shortcuts"

@@ -172,7 +172,7 @@ function Home() {
       }
     };
 
-    verifyCookie();
+    //verifyCookie();
   }, [cookies, navigate, removeCookie]);
 
   const Logout = () => {

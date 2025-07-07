@@ -1,7 +1,7 @@
 import { BiJoystickButton } from "react-icons/bi";
 const SteamdeckShortcutModal = () => {
   return (
-    <div>
+    <div className="flex items-center justify-center">
       <button
         className="btn tooltip tooltip-left btn-neutral"
         data-tip="show keyboard shortcuts"

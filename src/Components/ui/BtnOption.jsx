@@ -57,7 +57,7 @@ const BtnOption = () => {
   };
   return (
     <details className="dropdown">
-      <summary className="m-1 btn btn-neutral">Option</summary>
+      <summary className="btn btn-neutral">Option</summary>
       <ul className="dropdown-content z-[1] menu p-2 shadow btn-neutral rounded-box w-52">
         {/* <li>
                   <a className="bg-base-900 hover:bg-slate-700 text-white hover:text-slate-300">

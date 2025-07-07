@@ -59,7 +59,7 @@ const NavBar = ({
           </div> */}
         </div>
 
-        <div className="flex h-full items-center gap-4">
+        <div className="flex h-full items-center gap-1">
           <WifiSignalIndicatorButton />
           <BtnFullscreen fullscreenRef={fullscreenRef}/>
           <KeyboardShortcutModal />
