@@ -1143,6 +1143,10 @@ function Home() {
           showJoystick={showJoystick}
           ros={ros}
           fullscreenRef={fullscreenRef}
+          moveDistancePub={moveDistancePub}
+          stopAutoPub={stopAutoPub}
+          odometerValue={odometerValue}
+          
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-4">

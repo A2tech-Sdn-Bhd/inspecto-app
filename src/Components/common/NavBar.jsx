@@ -6,6 +6,7 @@ import BtnOption from "../ui/BtnOption";
 import KeyboardShortcutModal from "../ui/KeyboardShortcutModal";
 import SteamdeckShortcutModal from "../ui/SteamdeckShortcutModal";
 import BtnFullscreen from "../ui/BtnFullscreen";
+import BtnAutomation from "../features/BtnAutomation";
 const NavBar = ({
   connected,
   Logout,
@@ -29,6 +30,11 @@ const NavBar = ({
   startTrip,
   showJoystick,
   fullscreenRef,
+  moveDistancePub,
+  stopAutoPub,
+  odometerValue,
+  getJoystickInput,
+  cmdVelPub,
 }) => {
   return (
     <div>
@@ -61,7 +67,7 @@ const NavBar = ({
 
         <div className="flex h-full items-center gap-1">
           <WifiSignalIndicatorButton />
-          <BtnFullscreen fullscreenRef={fullscreenRef}/>
+          <BtnFullscreen fullscreenRef={fullscreenRef} />
           <KeyboardShortcutModal />
           <SteamdeckShortcutModal />
 
@@ -74,6 +80,13 @@ const NavBar = ({
           >
             <BsJoystick color="white" size={30}></BsJoystick>
           </button>
+          <BtnAutomation
+            moveDistancePub={moveDistancePub}
+            stopAutoPub={stopAutoPub}
+            odometerValue={odometerValue}
+            getJoystickInput={getJoystickInput}
+            cmdVelPub={cmdVelPub}
+          />
           {showBtnStartTrip && (
             <button
               className="btn btn-neutral"
