@@ -33,7 +33,6 @@ const NavBar = ({
   moveDistancePub,
   stopAutoPub,
   odometerValue,
-  getJoystickInput,
   cmdVelPub,
 }) => {
   return (
@@ -84,7 +83,6 @@ const NavBar = ({
             moveDistancePub={moveDistancePub}
             stopAutoPub={stopAutoPub}
             odometerValue={odometerValue}
-            getJoystickInput={getJoystickInput}
             cmdVelPub={cmdVelPub}
           />
           {showBtnStartTrip && (
