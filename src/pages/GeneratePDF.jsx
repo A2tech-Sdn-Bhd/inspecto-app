@@ -55,7 +55,7 @@ const GeneratePDF = () => {
       }
     };
 
-    //verifyCookie();
+    verifyCookie();
   }, [cookies, navigate, removeCookie]);
   if (!localStorage.getItem(`endTime_${tripID}`)) {
     localStorage.setItem(`endTime_${tripID}`, JSON.stringify(endTime));

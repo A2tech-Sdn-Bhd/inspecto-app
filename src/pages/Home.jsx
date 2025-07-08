@@ -172,7 +172,7 @@ function Home() {
       }
     };
 
-    //verifyCookie();
+    verifyCookie();
   }, [cookies, navigate, removeCookie]);
 
   const Logout = () => {
@@ -945,7 +945,7 @@ function Home() {
     stopAutoPub.current = new ROSLIB.Topic({
       ros: ros.current,
       name: "/stop_auto",
-      messageType: "std_msgs/Empty",
+      messageType: "std_msgs/Boolean",
     });
     resetOdomPub.current = new ROSLIB.Topic({
       ros: ros.current,
@@ -1146,6 +1146,7 @@ function Home() {
           moveDistancePub={moveDistancePub}
           stopAutoPub={stopAutoPub}
           odometerValue={odometerValue}
+          cmdVelPub={cmdVelPub}
         />
         <>
           <div className="grid grid-cols-12 gap-4 mt-4">

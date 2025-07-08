@@ -2,6 +2,7 @@ import { local } from "d3";
 import { useState, useRef, useEffect } from "react";
 import * as ROSLIB from "roslib";
 import Swal from "sweetalert2";
+
 const BtnAutomationTimer = ({ cmdVelPub }) => {
   const [startAuto, setStartAuto] = useState(false);
   const [inputHour, setInputHour] = useState("");
@@ -13,6 +14,14 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
   const intervalAutomation = useRef();
   const remainingTimeInterval = useRef();
   const [movement, setMovement] = useState(0);
+  
+  // New state for countdown display
+  const [countdown, setCountdown] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    totalSeconds: 0
+  });
 
   useEffect(() => {
     const automationOperation = localStorage.getItem("automationOperation");
@@ -33,6 +42,15 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
       setInputHour(hour);
       setInputMinute(minute);
       setInputSecond(second);
+      
+      // Set initial countdown
+      setCountdown({
+        hours: hour,
+        minutes: minute,
+        seconds: second,
+        totalSeconds: Math.floor(duration/1000)
+      });
+      
       Swal.fire({
         title: "Automation is running",
         text: `The automation remaining time is in ${hour} hour, ${minute} minute, and ${second} second`,
@@ -43,14 +61,11 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
         if (result.isConfirmed) {
           continueAutomation(hour,minute,second,movement);
           Swal.fire("Automation continue again!", "", "success");
-
         } else if (result.isDenied) {
           handleStopAutomation();
           Swal.fire("Automation stop immediately", "", "info");
-          
         }
       });
-
     }
   }, []);
 
@@ -73,6 +88,7 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
       inputMinuteRef.current.classList.remove("input-error");
     }
   };
+  
   const handleInputSecondChange = (event) => {
     const input = event.target.value;
     const sanitizedValue = input.replace(/[^0-9.-]/g, "");
@@ -83,79 +99,95 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
     }
   };
 
+  // Function to update countdown display
+  const updateCountdown = (remainingTimeMs) => {
+    const totalSeconds = Math.max(0, Math.floor(remainingTimeMs / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    setCountdown({
+      hours,
+      minutes,
+      seconds,
+      totalSeconds
+    });
+  };
+
   const continueAutomation = (hour,minute,second,movement) => {
     setStartAuto(!startAuto);
-      localStorage.setItem("automationOperation", true);
+    localStorage.setItem("automationOperation", true);
+    localStorage.removeItem("automationTime");
+    localStorage.removeItem("remainingTime");
+    localStorage.removeItem("endTime");
+    const time = hour * 3600 + minute * 60 + second;
+    // set the time and movement value in localstorage with key automationTime
+    localStorage.setItem("automationTime", [time, movement]);
+    let maxLinear = 0.25;
+    if (movement == 0) {
+      maxLinear *= 0.25;
+    } else if (movement == 1) {
+      maxLinear *= -0.25;
+    }
+    let joyTwist = new ROSLIB.Message({
+      linear: {
+        x: maxLinear,
+        y: 0.0,
+        z: 0.0,
+      },
+      angular: {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+      },
+    });
+    const duration = time * 1000; // calculate duration directly
+
+    const startTime = Date.now();
+    const endTime = startTime + duration;
+
+    intervalAutomation.current = setInterval(() => {
+      console.log("running");
+      cmdVelPub.current.publish(joyTwist);
+    }, 100);
+
+    // Save the end time to localStorage
+    localStorage.setItem("endTime", endTime);
+
+    // Clear the interval after the specified duration
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalAutomation.current);
+      clearInterval(remainingTimeInterval.current);
+      setStartAuto(false);
+      setCountdown({ hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 });
+      localStorage.removeItem("automationInterval");
+      localStorage.removeItem("automationOperation");
       localStorage.removeItem("automationTime");
       localStorage.removeItem("remainingTime");
       localStorage.removeItem("endTime");
-      const time = hour * 3600 + minute * 60 + second;
-      // set the time and movement value in localstorage with key automationTime
-      localStorage.setItem("automationTime", [time, movement]);
-      let maxLinear = 0.25;
-      if (movement == 0) {
-        maxLinear *= 1;
-      } else if (movement == 1) {
-        maxLinear *= -1;
-      }
-      let joyTwist = new ROSLIB.Message({
-        linear: {
-          x: maxLinear,
-          y: 0.0,
-          z: 0.0,
-        },
-        angular: {
-          x: 0.0,
-          y: 0.0,
-          z: 0.0,
-        },
-      });
-      const duration = time * 1000; // calculate duration directly
+    }, duration);
 
+    // Function to get the remaining time
+    const getRemainingTime = () => {
+      const now = Date.now();
+      const endTime = localStorage.getItem("endTime");
+      const remainingTime = endTime - now;
+      return remainingTime;
+    };
 
-      const startTime = Date.now();
-      const endTime = startTime + duration;
+    // Save the remaining time to localStorage every second and update countdown
+    remainingTimeInterval.current = setInterval(() => {
+      const remainingTime = getRemainingTime();
+      localStorage.setItem("remainingTime", remainingTime);
+      updateCountdown(remainingTime);
+    }, 1000);
 
-      intervalAutomation.current = setInterval(() => {
-        console.log("running");
-        cmdVelPub.current.publish(joyTwist);
-      }, 100);
-
-      // Save the end time to localStorage
-      localStorage.setItem("endTime", endTime);
-
-      // Clear the interval after the specified duration
-      const timeoutId = setTimeout(() => {
-        clearInterval(intervalAutomation.current);
-        setStartAuto(false);
-        localStorage.removeItem("automationInterval");
-        localStorage.removeItem("automationOperation");
-        localStorage.removeItem("automationTime");
-        localStorage.removeItem("remainingTime");
-        localStorage.removeItem("endTime");
-      }, duration);
-
-      // Function to get the remaining time
-      const getRemainingTime = () => {
-        const now = Date.now();
-        const endTime = localStorage.getItem("endTime");
-        const remainingTime = endTime - now;
-        return remainingTime;
-      };
-
-      // Save the remaining time to localStorage every second
-      remainingTimeInterval.current = setInterval(() => {
-        const remainingTime = getRemainingTime();
-        localStorage.setItem("remainingTime", remainingTime);
-      }, 1000);
-
-      // Clear the remainingTimeInterval when the timeout ends
-      setTimeout(() => {
-        clearInterval(remainingTimeInterval);
-        localStorage.removeItem("remainingTime");
-      }, duration);
-
-  }
+    // Clear the remainingTimeInterval when the timeout ends
+    setTimeout(() => {
+      clearInterval(remainingTimeInterval.current);
+      localStorage.removeItem("remainingTime");
+    }, duration);
+  };
   
   const handleStartAutomation = () => {
     if (inputHour === "" && inputMinute === "" && inputSecond === "") {
@@ -177,11 +209,20 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
       setMovement(document.querySelector(".select-movement").value);
       // set the time and movement value in localstorage with key automationTime
       localStorage.setItem("automationTime", [time, movement]);
+      
+      // Set initial countdown
+      setCountdown({
+        hours: parseInt(inputHour) || 0,
+        minutes: parseInt(inputMinute) || 0,
+        seconds: parseInt(inputSecond) || 0,
+        totalSeconds: time
+      });
+      
       let maxLinear = 0.25;
       if (movement == 0) {
-        maxLinear *= 1;
+        maxLinear *= 0.25;
       } else if (movement == 1) {
-        maxLinear *= -1;
+        maxLinear *= -0.25;
       }
       let joyTwist = new ROSLIB.Message({
         linear: {
@@ -197,7 +238,6 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
       });
       const duration = time * 1000; // calculate duration directly
 
-
       const startTime = Date.now();
       const endTime = startTime + duration;
 
@@ -212,7 +252,9 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
       // Clear the interval after the specified duration
       const timeoutId = setTimeout(() => {
         clearInterval(intervalAutomation.current);
+        clearInterval(remainingTimeInterval.current);
         setStartAuto(false);
+        setCountdown({ hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 });
         localStorage.removeItem("automationInterval");
         localStorage.removeItem("automationOperation");
         localStorage.removeItem("automationTime");
@@ -228,19 +270,21 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
         return remainingTime;
       };
 
-      // Save the remaining time to localStorage every second
+      // Save the remaining time to localStorage every second and update countdown
       remainingTimeInterval.current = setInterval(() => {
         const remainingTime = getRemainingTime();
         localStorage.setItem("remainingTime", remainingTime);
+        updateCountdown(remainingTime);
       }, 1000);
 
       // Clear the remainingTimeInterval when the timeout ends
       setTimeout(() => {
-        clearInterval(remainingTimeInterval);
+        clearInterval(remainingTimeInterval.current);
         localStorage.removeItem("remainingTime");
       }, duration);
     }
   };
+  
   const handleStopAutomation = () => {
     clearInterval(intervalAutomation.current);
     clearInterval(remainingTimeInterval.current);
@@ -250,8 +294,10 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
     localStorage.removeItem("remainingTime");
     localStorage.removeItem("endTime");
     setStartAuto(false);
+    setCountdown({ hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 });
     console.log("clear interval by button");
   };
+  
   useEffect(() => {
     const handleKeyDown = (evt) => {
       if (startAuto && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(evt.key)) {
@@ -263,6 +309,12 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [startAuto]);
+
+  // Format countdown display
+  const formatTime = (value) => {
+    return value.toString().padStart(2, '0');
+  };
+
   return (
     <>
       <div>
@@ -278,6 +330,7 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
               placeholder="Insert Hour"
               value={inputHour}
               onChange={handleInputHourChange}
+              disabled={startAuto}
             />
           </label>
           <label className="form-control mb-2">
@@ -291,6 +344,7 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
               placeholder="Insert Minute"
               value={inputMinute}
               onChange={handleInputMinuteChange}
+              disabled={startAuto}
             />
           </label>
           <label className="form-control mb-2">
@@ -304,6 +358,7 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
               placeholder="Insert Second"
               value={inputSecond}
               onChange={handleInputSecondChange}
+              disabled={startAuto}
             />
           </label>
         </div>
@@ -311,16 +366,49 @@ const BtnAutomationTimer = ({ cmdVelPub }) => {
           <div className="label">
             <span className="label-text">Movement Direction</span>
           </div>
-          <select className="select select-bordered w-full select-movement">
+          <select className="select select-bordered w-full select-movement" disabled={startAuto}>
             <option selected value={0}>
               Forward
             </option>
             <option value={1}>Reverse</option>
           </select>
         </label>
+        
+        {/* Countdown Display */}
+        {startAuto && (
+          <div className="card bg-base-200 shadow-xl mb-4">
+            <div className="card-body text-center">
+              <h2 className="card-title justify-center text-primary">Automation Running</h2>
+              <div className="grid grid-flow-col gap-5 text-center auto-cols-max items-center justify-center">
+                <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                  <span className="countdown font-mono text-5xl">
+                    <span style={{"--value": countdown.hours}}></span>
+                  </span>
+                  <span className="text-sm">hours</span>
+                </div>
+                <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                  <span className="countdown font-mono text-5xl">
+                    <span style={{"--value": countdown.minutes}}></span>
+                  </span>
+                  <span className="text-sm">min</span>
+                </div>
+                <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                  <span className="countdown font-mono text-5xl">
+                    <span style={{"--value": countdown.seconds}}></span>
+                  </span>
+                  <span className="text-sm">sec</span>
+                </div>
+              </div>
+              <div className="text-sm opacity-70">
+                Direction: {movement == 0 ? 'Forward' : 'Reverse'}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {startAuto ? (
           <button
-            className="btn btn-block btn-neutral"
+            className="btn btn-block btn-error"
             onClick={handleStopAutomation}
           >
             Stop Automation
