@@ -5,6 +5,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
+import { AUTH_ENABLED } from "../config/auth";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import { saveAs } from "file-saver";
 import { Button, Modal } from "react-daisyui";
@@ -90,7 +91,7 @@ function CleaningPage({
   const navigate = useNavigate();
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const location = useLocation();
-  const [generateReportAccess, setGenerateReportAccess] = useState(false);
+  const [generateReportAccess, setGenerateReportAccess] = useState(!AUTH_ENABLED);
   const [handleUseButton, setHandleUseButton] = useState(false);
 
   const [geninput, setgeninput] = useState({
@@ -126,6 +127,7 @@ function CleaningPage({
   }, [location.pathname]);
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {
@@ -1009,7 +1011,7 @@ function CleaningPage({
             </div>
             <div className="col-span-2 flex flex-col justify-center">
               <CleaningModule brushArmPub={brushArmPub} brushSpin={brushSpin} motorSpeed={motorSpeed} />
-              <LightController lightIntensityPub={lightIntensityPub} />
+              {/* {/* <LightController lightIntensityPub={lightIntensityPub} /> */} 
               {showJoystick && (
                 <>
                   <div className="card bg-base-100 me-4 mt-4">

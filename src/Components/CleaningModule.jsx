@@ -98,7 +98,7 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
               DOWN
             </button>
           </div>
-          <h3 className="text-center mt-1">Control Brush Motor Speed</h3>
+          {/* <h3 className="text-center mt-1">Control Brush Motor Speed</h3>
           <input 
             type="range" 
             min={0} 
@@ -106,7 +106,7 @@ const CleaningModule = ({ brushArmPub, brushSpin, motorSpeed }) => {
             value={motorSpeedValue} 
             onChange={handleChange} 
             className="range" 
-          />
+          /> */}
           <h3 className="text-center mt-1">Brush Motor Status</h3>
           <div className="grid grid-cols-1 gap-2">
             {brushStatus ? (

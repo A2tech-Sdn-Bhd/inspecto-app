@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import logo from "../assets/a2tech.png";
 import { useCookies } from "react-cookie";
+import { AUTH_ENABLED } from "../config/auth";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 
 const Login = () => {
@@ -28,6 +29,10 @@ const Login = () => {
   }
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) {
+        navigate("/", { replace: true });
+        return;
+      }
       if (!cookies.token_app) {
         navigate("/login");
       } else {

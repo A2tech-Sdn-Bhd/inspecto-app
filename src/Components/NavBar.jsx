@@ -5,6 +5,7 @@ import ReportForm from "../Components/ReportForm";
 import StartAutomation from "./StartAutomation";
 import { useRef,useState } from "react";
 import * as ROSLIB from "roslib";
+import { AUTH_ENABLED } from "../config/auth";
 const NavBar = ({
   ros,
   setConnected,
@@ -153,9 +154,11 @@ const NavBar = ({
               </li>
             </ul>
           </details>
-          <button className="btn btn-neutral" onClick={Logout}>
-            Log Out
-          </button>
+          {AUTH_ENABLED && (
+            <button className="btn btn-neutral" onClick={Logout}>
+              Log Out
+            </button>
+          )}
         </div>
       </div>
       <ReportForm

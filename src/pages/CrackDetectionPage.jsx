@@ -5,6 +5,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
+import { AUTH_ENABLED } from "../config/auth";
 import CrackDetection from "../Components/CrackDetection";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import Draggable from "react-draggable";
@@ -89,8 +90,8 @@ function CrackDetectionPage({
   const navigate = useNavigate();
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const location = useLocation();
-  const [generateReportAccess, setGenerateReportAccess] = useState(false);
-  const [crackDetectionAccess, setCrackDetectionAccess] = useState(false);
+  const [generateReportAccess, setGenerateReportAccess] = useState(!AUTH_ENABLED);
+  const [crackDetectionAccess, setCrackDetectionAccess] = useState(!AUTH_ENABLED);
   const [handleUseButton, setHandleUseButton] = useState(false);
   const [geninput, setgeninput] = useState({
     n: "",
@@ -140,6 +141,7 @@ function CrackDetectionPage({
   }, [edgeRear]);
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {
@@ -1124,7 +1126,7 @@ function CrackDetectionPage({
                   </div>
                 </div>
               </div>
-              <LightController lightIntensityPub={lightIntensityPub} />
+              {/* <LightController lightIntensityPub={lightIntensityPub} /> */}
               <div className="card bg-base-100 me-4 mt-4">
                 <div className="card-body">
                   <div

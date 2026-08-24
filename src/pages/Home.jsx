@@ -5,6 +5,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
+import { AUTH_ENABLED } from "../config/auth";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import {
   AiOutlineArrowUp,
@@ -101,7 +102,7 @@ function Home({
   const navigate = useNavigate();
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const location = useLocation();
-  const [generateReportAccess, setGenerateReportAccess] = useState(false);
+  const [generateReportAccess, setGenerateReportAccess] = useState(!AUTH_ENABLED);
   const [handleUseButton, setHandleUseButton] = useState(false);
 
   const [geninput, setgeninput] = useState({
@@ -158,6 +159,7 @@ function Home({
   }, [edgeRear]);
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {
@@ -1237,7 +1239,7 @@ function Home({
                 showAuto={showAuto}
                 setShowAuto={setShowAuto}
               />
-              <LightController lightIntensityPub={lightIntensityPub} />
+              {/* <LightController lightIntensityPub={lightIntensityPub} /> */}
             </div>
           </div>
           <div className="absolute bottom-10 w-fit" style={{ left: "40%" }}>

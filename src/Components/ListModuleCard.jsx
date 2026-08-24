@@ -4,19 +4,21 @@ import LaserModule from "../Components/LaserModule";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AUTH_ENABLED } from "../config/auth";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 const ListModuleCard = ({ setCam, setShowPtzCtrl, showAuto, setShowAuto }) => {
-  const [crackDetectionAccess, setCrackDetectionAccess] = useState(false);
-  const [mappingModuleAccess, setMappingModuleAccess] = useState(false);
-  const [ptzModuleAccess, setPtzModuleAccess] = useState(false);
-  const [LaserModuleAccess, setLaserModuleAccess] = useState(false);
-  const [cleanModuleAccess, setCleanModuleAccess] = useState(false);
-  const [generateReportAccess, setGenerateReportAccess] = useState(false);
+  const [crackDetectionAccess, setCrackDetectionAccess] = useState(!AUTH_ENABLED);
+  const [mappingModuleAccess, setMappingModuleAccess] = useState(!AUTH_ENABLED);
+  const [ptzModuleAccess, setPtzModuleAccess] = useState(!AUTH_ENABLED);
+  const [LaserModuleAccess, setLaserModuleAccess] = useState(!AUTH_ENABLED);
+  const [cleanModuleAccess, setCleanModuleAccess] = useState(!AUTH_ENABLED);
+  const [generateReportAccess, setGenerateReportAccess] = useState(!AUTH_ENABLED);
 
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const navigate = useNavigate();
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {

@@ -5,6 +5,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
+import { AUTH_ENABLED } from "../config/auth";
 import OdometerPanel from "../Components/OdometerPanel";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import Draggable from "react-draggable";
@@ -93,8 +94,8 @@ function MappingPage({
   const navigate = useNavigate();
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const location = useLocation();
-  const [mappingModuleAccess, setMappingModuleAccess] = useState(false);
-  const [generateReportAccess, setGenerateReportAccess] = useState(false);
+  const [mappingModuleAccess, setMappingModuleAccess] = useState(!AUTH_ENABLED);
+  const [generateReportAccess, setGenerateReportAccess] = useState(!AUTH_ENABLED);
   const [handleUseButton, setHandleUseButton] = useState(false);
   const [swapCameraStatus, setSwapCameraStatus] = useState(false);
   const [geninput, setgeninput] = useState({
@@ -151,6 +152,7 @@ function MappingPage({
 
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {
@@ -1226,7 +1228,7 @@ function MappingPage({
                     </button>
                 </div>
               </div>
-              <LightController lightIntensityPub={lightIntensityPub} />
+              {/* <LightController lightIntensityPub={lightIntensityPub} /> */}
               <div className="card bg-base-100 shadow-xl mt-4 me-4">
                 {swapCameraStatus ? (
                   <div className="card-body">

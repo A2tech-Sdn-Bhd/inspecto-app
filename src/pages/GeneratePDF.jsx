@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AUTH_ENABLED } from "../config/auth";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 const GeneratePDF = () => {
   const [cookies, removeCookie] = useCookies(["token_app"]);
@@ -38,6 +39,7 @@ const GeneratePDF = () => {
 
   useEffect(() => {
     const verifyCookie = async () => {
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {

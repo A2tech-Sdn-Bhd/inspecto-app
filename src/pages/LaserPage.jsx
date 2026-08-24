@@ -5,6 +5,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import * as ROSLIB from "roslib";
 import { Joystick } from "react-joystick-component";
+import { AUTH_ENABLED } from "../config/auth";
 const API_URL = import.meta.env.VITE_API_URL_INSPECTO;
 import NavBar from "../Components/NavBar";
 import { AiFillSave } from "react-icons/ai";
@@ -98,7 +99,7 @@ function LaserPage({
 
   const [modalVisible, setModalVisible] = useState(false);
   const [laserStatus, setLaserStatus] = useState(false);
-  const [LaserModuleAccess, setLaserModuleAccess] = useState(false);
+  const [LaserModuleAccess, setLaserModuleAccess] = useState(!AUTH_ENABLED);
   const [inputValue, setInputValue] = useState("");
   const [inputDiameter, setInputDiameter] = useState("");
   const [inputTol, setInputTol] = useState("");
@@ -110,7 +111,7 @@ function LaserPage({
   const navigate = useNavigate();
   const [cookies, removeCookie] = useCookies(["token_app"]);
   const location = useLocation();
-  const [generateReportAccess, setGenerateReportAccess] = useState(false);
+  const [generateReportAccess, setGenerateReportAccess] = useState(!AUTH_ENABLED);
   const [handleUseButton, setHandleUseButton] = useState(false);
   const [showBtnBack, setShowBtnBack] = useState(false);
   const [lowYplot, setLowYplot] = useState(0.1);
@@ -253,6 +254,7 @@ function LaserPage({
   useEffect(() => {
     const verifyCookie = async () => {
       setShowBtnBack(true);
+      if (!AUTH_ENABLED) return;
       if (!cookies.token_app) {
         navigate("/login");
       } else {
@@ -1238,7 +1240,7 @@ function LaserPage({
                   </div>
                 </div>
               </div>
-              <LightController lightIntensityPub={lightIntensityPub} />
+              {/* <LightController lightIntensityPub={lightIntensityPub} /> */}
               <div className="mt-2 me-4">
                 <OdometerPanelLaser
                   setConnected={setConnected}

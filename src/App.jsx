@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import Home from "./pages/Home";
 import GeneratePDF from "./pages/GeneratePDF";
@@ -9,6 +9,7 @@ import CrackDetectionPage from "./pages/CrackDetectionPage";
 import CleaningPage from "./pages/CleaningPage";
 import PtzPage from "./pages/PtzPage";
 import * as ROSLIB from "roslib";
+import { AUTH_ENABLED } from "./config/auth";
 
 function App() {
   const ros = useRef(null);
@@ -207,7 +208,10 @@ function App() {
         }
       />
       <Route path="/generatepdf" element={<GeneratePDF />} />
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/login"
+        element={AUTH_ENABLED ? <Login /> : <Navigate to="/" replace />}
+      />
       <Route
         path="/laser"
         element={
